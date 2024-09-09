@@ -11,6 +11,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+    implementation(files("debugJar/omod-2.0.15-all.jar"))
 }
 
 tasks.test {

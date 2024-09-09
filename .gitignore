@@ -44,4 +44,5 @@ bin/
 .idea/
 .gradle/
 .kotlin/
-input/
+debugIn/
+debugJar/

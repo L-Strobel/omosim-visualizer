@@ -1,5 +1,6 @@
 package de.uniwuerzburg.omodvisualizer
 
+import de.uniwuerzburg.omod.io.json.OutputActivity
 import org.joml.Matrix3x2f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
@@ -18,11 +19,12 @@ class Visualizer {
     private var aspect: Float = 1f
     private var anglePerc = 0f
     private val rng = Random()
-    private val nBalls = 10_000
+    private val vAgents = load()
+    private val nBalls = vAgents.size
     private val startPositions = List(nBalls) { rng.nextFloat()*2 - 1 to rng.nextFloat() * 2 - 1}
     private val timeSource = TimeSource.Monotonic
     private var lastTime = timeSource.markNow()
-    private val vAgents = load()
+
 
     fun run() {
         init()
@@ -76,13 +78,24 @@ class Visualizer {
     private fun render() {
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-        val r = 0.03f
-        val angle = anglePerc / 100f * 2f * PI.toFloat()
+        val firstLats = mutableListOf<Double>()
+        val firstLons = mutableListOf<Double>()
+        for (agent in vAgents) {
+            val act = agent.legs.first() as OutputActivity
+            firstLats.add(act.lat)
+            firstLons.add(act.lon)
+        }
+        val bbBOX = arrayOf(firstLons.min(), firstLons.max(), firstLats.min(), firstLats.max())
+
         val model = Matrix3x2f()
-            .translate(r * cos(angle), r * sin(angle))
             .scale(0.01f * aspect, 0.01f)
 
-        val positions = List(nBalls) { Pair(rng.nextFloat()*2 - 1, rng.nextFloat()*2 - 1)}
+        val positions = firstLons.zip(firstLats).map { (x, y) ->
+            val xAdj =  ((x - bbBOX[0]) / (bbBOX[1] - bbBOX[0]) *2 - 1).toFloat()
+            val yAdj =  ((y - bbBOX[2]) / (bbBOX[3] - bbBOX[2]) *2 - 1).toFloat()
+            xAdj to yAdj
+        }
+        //val positions = List(nBalls) { Pair(rng.nextFloat()*2 - 1, rng.nextFloat()*2 - 1)}
 
         renderer.render( model, positions )
 

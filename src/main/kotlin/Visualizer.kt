@@ -1,6 +1,7 @@
 package de.uniwuerzburg.omodvisualizer
 
 import de.uniwuerzburg.omod.io.json.OutputActivity
+import de.uniwuerzburg.omod.io.json.OutputTrip
 import org.joml.Matrix3x2f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
@@ -11,6 +12,7 @@ import kotlin.collections.ArrayList
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.time.Duration.Companion.microseconds
 import kotlin.time.TimeSource
 
 class Visualizer {
@@ -24,12 +26,39 @@ class Visualizer {
     private val startPositions = List(nBalls) { rng.nextFloat()*2 - 1 to rng.nextFloat() * 2 - 1}
     private val timeSource = TimeSource.Monotonic
     private var lastTime = timeSource.markNow()
-
+    private var totalTime = 0L
+    private var positions = MutableList(nBalls) { 0f to 0f }
+    private lateinit var bbBox: Array<Float>
 
     fun run() {
+        initPos()
         init()
         loop()
         close()
+    }
+
+    fun initPos(){
+        val firstLats = mutableListOf<Float>()
+        val firstLons = mutableListOf<Float>()
+        for (agent in vAgents) {
+            val act = agent.legs.first() as OutputActivity
+            firstLats.add(act.lat.toFloat())
+            firstLons.add(act.lon.toFloat())
+        }
+        bbBox = arrayOf(firstLons.min(), firstLons.max(), firstLats.min(), firstLats.max())
+
+        val lonsScaled = firstLons.map { scaleXToBB(it) }
+        val latsScaled = firstLats.map { scaleYToBB(it) }
+
+        positions = lonsScaled.zip(latsScaled).toMutableList()
+    }
+
+    private fun scaleXToBB(x: Float) : Float {
+        return (x - bbBox[0]) / (bbBox[1] - bbBox[0]) *2 - 1
+    }
+
+    private fun scaleYToBB(y: Float) : Float {
+        return (y -  bbBox[2]) / (bbBox[3] - bbBox[2]) *2 - 1
     }
 
     private fun init() {
@@ -52,6 +81,7 @@ class Visualizer {
 
         // Start timer
         lastTime = timeSource.markNow()
+        totalTime = 0L
     }
 
     private fun loop() {
@@ -59,7 +89,7 @@ class Visualizer {
             val delta = getTimeDelta()
             updateState(delta)
             render()
-            print("FPS: ${1e9 / delta}\r") // Print FPS
+            print("FPS: ${1e9 / delta}, Time: ${totalTime / 1e9  * 100}\r") // Print FPS
         }
     }
 
@@ -71,31 +101,34 @@ class Visualizer {
     }
 
     private fun updateState(delta: Long) {
-        anglePerc += 1f * delta.toFloat() / (1e9f / 60f)
-        anglePerc %= 100f
+        totalTime += delta
+        val simMinute = totalTime / 1e9 * 100
+        for ((i, agent) in vAgents.withIndex()) {
+            agent.timeInCurrentLeg += delta / 1e9 * 100
+            val currentLeg = agent.legs.first() as OutputActivity
+            var diff = agent.timeInCurrentLeg - currentLeg.stayTimeMinute!!
+            if (diff>0) {
+                agent.legs.removeFirst()
+                agent.timeInCurrentLeg = diff
+
+                while (agent.legs.first() is OutputTrip) {
+                    agent.legs.removeFirst()
+                }
+                val nextActivity = agent.legs.first() as OutputActivity
+                val x = scaleXToBB(nextActivity.lon.toFloat())
+                val y = scaleYToBB(nextActivity.lat.toFloat())
+                positions[i] = x to y
+                //TODO while
+            }
+
+        }
     }
 
     private fun render() {
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-        val firstLats = mutableListOf<Double>()
-        val firstLons = mutableListOf<Double>()
-        for (agent in vAgents) {
-            val act = agent.legs.first() as OutputActivity
-            firstLats.add(act.lat)
-            firstLons.add(act.lon)
-        }
-        val bbBOX = arrayOf(firstLons.min(), firstLons.max(), firstLats.min(), firstLats.max())
-
         val model = Matrix3x2f()
             .scale(0.01f * aspect, 0.01f)
-
-        val positions = firstLons.zip(firstLats).map { (x, y) ->
-            val xAdj =  ((x - bbBOX[0]) / (bbBOX[1] - bbBOX[0]) *2 - 1).toFloat()
-            val yAdj =  ((y - bbBOX[2]) / (bbBOX[3] - bbBOX[2]) *2 - 1).toFloat()
-            xAdj to yAdj
-        }
-        //val positions = List(nBalls) { Pair(rng.nextFloat()*2 - 1, rng.nextFloat()*2 - 1)}
 
         renderer.render( model, positions )
 

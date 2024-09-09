@@ -6,10 +6,10 @@ import java.io.File
 import kotlin.math.max
 
 class VisualAgent (
-    val currentLeg: Int,
-    val currentTripPoint: Int,
-    val legs: List<OutputLeg>
-)
+    val legs: ArrayDeque<OutputLeg>
+) {
+    var timeInCurrentLeg = 0.0
+}
 
 fun load() : List<VisualAgent> {
     val file = File(("debugIn/bayreuth_smallTest.json"))
@@ -44,7 +44,7 @@ fun getVAgent(agent: OutputEntry) : VisualAgent {
         }
         clockTime -= 24 * 60 // TODO test
     }
-    return VisualAgent(0, 0, legs)
+    return VisualAgent(ArrayDeque(legs))
 }
 
 

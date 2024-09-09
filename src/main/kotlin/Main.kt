@@ -1,72 +1,47 @@
 package de.uniwuerzburg.omodvisualizer
 
-import de.uniwuerzburg.omod.io.json.OutputActivity
-import de.uniwuerzburg.omod.io.json.OutputEntry
-import de.uniwuerzburg.omod.io.json.OutputTrip
-import de.uniwuerzburg.omod.io.json.readJson
+import de.uniwuerzburg.omod.io.json.*
 import org.locationtech.jts.geom.Coordinate
 import java.awt.Color
 import java.io.File
 import kotlin.math.max
 
-class VisualUnit (
-    val existsFrom: Double,
-    val existsUntil: Double,
-    val x: Float,
-    val y: Float,
-    val color: Color
+class VisualAgent (
+    val currentLeg: Int,
+    val currentTripPoint: Int,
+    val legs: List<OutputLeg>
 )
 
 fun main() {
     val file = File(("debugIn/bayreuth_smallTest.json"))
     val omodData = readJson<List<OutputEntry>>(file)
-    val units = getVisualUnits(omodData)
+    val vAgents = omodData.map{ getVAgent(it) }
 }
 
-fun getVisualUnits(omodData: List<OutputEntry>) : List<List<VisualUnit>> {
-    val units = mutableListOf<List<VisualUnit>>()
-    for (agent in omodData) {
-        units.add(getVisualUnitsForAgent(agent))
-    }
-    return units
-}
+fun getVAgent(agent: OutputEntry) : VisualAgent {
+    val legs = mutableListOf<OutputLeg>()
 
-fun getVisualUnitsForAgent(agent: OutputEntry) : List<VisualUnit> {
-    val agentUnits = mutableListOf<VisualUnit>()
-    var tEndLast = 0.0
     var clockTime = 0.0
     for (diary in agent.mobilityDemand) {
         for (leg in diary.plan) {
-            val lastTime = if (leg is OutputTrip) {
-                val time = leg.timeMinute ?: 0.0
-                require((leg.lats != null) && (leg.lons != null)) { "Lat lons not available!" }
-                val interpolatedCoords = interpolateTrip(time.toInt(), leg.lats!!, leg.lons!!)
-                for ((lat, lon) in interpolatedCoords) {
-                    val unit = VisualUnit(
-                        tEndLast, tEndLast + time, lat.toFloat(), lon.toFloat(), Color.CYAN
-                    )
-                    agentUnits.add(unit)
+            // Fill end of day times
+            if (leg is OutputActivity) {
+                if (leg.stayTimeMinute == null) {
+                    val time = leg.stayTimeMinute ?: max(0.0,  24 * 60 - clockTime)
                 }
-                tEndLast + time
-            } else if (leg is OutputActivity) {
-                val time = leg.stayTimeMinute ?: max(0.0,  24 * 60 - clockTime)
-                val unit = VisualUnit(
-                    tEndLast, tEndLast + time,
-                    leg.lat.toFloat(), leg.lon.toFloat(), Color.CYAN
-                )
-                agentUnits.add(unit)
-                tEndLast + time
+                clockTime += leg.stayTimeMinute!!
+            } else if (leg is OutputTrip) {
+                clockTime += leg.timeMinute!! // TODO handle null
             } else {
-                throw IllegalArgumentException("Unexpected leg type found!")
+                throw IllegalArgumentException("Unexpected leg type ${leg::class.simpleName} found!")
             }
-
-            tEndLast = lastTime
-            clockTime = lastTime
+            legs.add(leg)
         }
-        clockTime -= 24 * 60
+        clockTime -= 24 * 60 // TODO test
     }
-    return agentUnits
+    return VisualAgent(0, 0, legs)
 }
+
 
 fun interpolateTrip(nSteps: Int, lats: List<Double>, lons: List<Double>) : List<Pair<Double, Double>> {
     val result = mutableListOf<Pair<Double, Double>>()
@@ -81,7 +56,7 @@ fun interpolateTrip(nSteps: Int, lats: List<Double>, lons: List<Double>) : List<
     }
 
     // Interpolate the coordinate
-    var nextDistance = 0.0
+    var nextDistance = 0.0 // TODO
     var runningDistance = 0.0
     val distanceOfSegment = totalDistance / nSteps
     lastCoord = coords.first()

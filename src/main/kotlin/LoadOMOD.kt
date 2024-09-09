@@ -6,7 +6,7 @@ import java.io.File
 import kotlin.math.max
 
 class VisualAgent (
-    val legs: ArrayDeque<OutputLeg>
+    val legs: ArrayDeque<OutputLeg>,
 ) {
     var timeInCurrentLeg = 0.0
 }

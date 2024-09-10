@@ -11,31 +11,28 @@ class VisualAgent (
 ) {
     var x = trace.first().x
     var y = trace.first().y
+    private var lastPoint = trace.first()
 
     fun updatePosition(simTime: Double) {
         if (trace.isEmpty()) { return } // This agent is done
 
         var diff = simTime - trace.first().stop
         var changed = false
-        var lastPoint = trace.first()
         while (diff > 0) {
             if (trace.size <= 1) { break }
             lastPoint = trace.removeFirst()
             diff = simTime - trace.first().stop
             changed = true
         }
-
-        if (changed) {
-            val thisPoint = trace.first()
-            if ((thisPoint.start >= simTime) || (thisPoint.start == lastPoint.stop)){
-                x = trace.first().x
-                y = trace.first().y
-            } else {
-                // Interpolate position between points
-                val alpha = (1 - (simTime - thisPoint.start) / (thisPoint.start - lastPoint.stop)).toFloat()
-                x = lastPoint.x + alpha * (thisPoint.x - lastPoint.x)
-                y = lastPoint.y + alpha * (thisPoint.y - lastPoint.y)
-            }
+        val thisPoint = trace.first()
+        if ((thisPoint.start > simTime) && (thisPoint.start != lastPoint.stop)) {
+            // Interpolate position between points
+            val alpha = ((simTime - lastPoint.stop) / (thisPoint.start - lastPoint.stop)).toFloat()
+            x = lastPoint.x + alpha * (thisPoint.x - lastPoint.x)
+            y = lastPoint.y + alpha * (thisPoint.y - lastPoint.y)
+        } else if (changed) {
+            x = thisPoint.x
+            y = thisPoint.y
         }
     }
 

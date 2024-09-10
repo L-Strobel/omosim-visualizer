@@ -1,6 +1,7 @@
 package de.uniwuerzburg.omodvisualizer
 
 import org.joml.Matrix3x2f
+import org.joml.Matrix4f
 import org.joml.Vector2i
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.system.MemoryStack.stackPush
@@ -12,6 +13,14 @@ class ShaderProgram(shaders: List<String>) {
     init {
         for (shader in shaders) {
             addShader(shader)
+        }
+    }
+
+    fun addUniform(matrix4f: Matrix4f, name: String) {
+        stackPush().use { stack ->
+            val fb = matrix4f.get(stack.mallocFloat(16))
+            val uniModel = glGetUniformLocation(ref, name)
+            glUniformMatrix4fv(uniModel, false, fb)
         }
     }
 

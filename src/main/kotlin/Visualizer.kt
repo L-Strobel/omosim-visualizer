@@ -1,11 +1,15 @@
 package de.uniwuerzburg.omodvisualizer
 
+import org.geotools.referencing.operation.matrix.MatrixFactory
 import org.joml.Matrix3x2f
+import org.joml.Matrix4f
+import org.joml.Vector4f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL20.*
 import java.awt.Color
 import java.io.File
+import java.util.Vector
 import kotlin.time.TimeSource
 
 class Visualizer {
@@ -38,6 +42,13 @@ class Visualizer {
         // Init window
         window = Window(2560,1440, "")
         aspect = window.getAspect()
+
+
+        val (width, height) = window.getCurrentWindowSize()
+        val v = 0.5f
+        val projection = Matrix4f().ortho2D(-v, v, -v, v)
+
+        val test = Vector4f(1f, 0f, 0f, 1f).mulProject(projection)
 
         // Init GL
         GL.createCapabilities() // Creates the GLCapabilities instance and makes the OpenGL bindings available for use.
@@ -96,13 +107,16 @@ class Visualizer {
     private fun render() {
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
+        val v = 0.5f
+        val projection = Matrix4f().ortho2D(-v, v, -v, v)
+
         // Plot background
-        bgRenderer.render(Matrix3x2f())
+        bgRenderer.render(projection, Matrix4f())
 
-        val model = Matrix3x2f()
-            .scale(0.002f * aspect, 0.002f)
+        val model = Matrix4f()
+            .scale(0.002f * aspect, 0.002f, 1f)
 
-        agentRenderer.renderInstanced( model, positions )
+        agentRenderer.renderInstanced(projection, model, positions )
 
 
         glfwSwapBuffers(window.ref) // swap the color buffers

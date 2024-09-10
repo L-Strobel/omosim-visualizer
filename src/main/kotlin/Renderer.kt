@@ -19,15 +19,17 @@ class Renderer(private val mesh: Mesh, instances: Int) {
         unbindVAO()
     }
 
-    fun render(model: Matrix3x2f) {
+    fun render(projection: Matrix4f, model: Matrix4f) {
         bindVAO()
+        shaderProgramme.addUniform(projection, "projection")
         shaderProgramme.addUniform(model, "model")
         glDrawArrays (mesh.drawMode, 0, mesh.size)
         unbindVAO()
     }
 
-    fun renderInstanced(model: Matrix3x2f, positions: List<Pair<Float, Float>>) {
+    fun renderInstanced(projection: Matrix4f, model: Matrix4f, positions: List<Pair<Float, Float>>) {
         bindVAO()
+        shaderProgramme.addUniform(projection, "projection")
         shaderProgramme.addUniform(model, "model")
         mesh.prepareInstancedDraw(positions)
         glDrawArraysInstanced (mesh.drawMode, 0, mesh.size, mesh.instances)

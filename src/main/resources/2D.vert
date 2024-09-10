@@ -7,13 +7,14 @@ in vec2 offset;
 out vec3 vertexColor;
 out vec4 gl_Position;
 
-uniform mat3 model;
+uniform mat4 projection;
+uniform mat4 model;
 
-vec3 pos2d;
+vec4 pos;
 void main () {
     vertexColor = color;
-    pos2d = model * vec3(position, 1);
-    pos2d.x += offset[0];
-    pos2d.y += offset[1];
-    gl_Position = vec4(pos2d.x, pos2d.y, 0, 1);
+    pos = model * vec4(position, 0, 1);
+    pos.x += offset[0];
+    pos.y += offset[1];
+    gl_Position = projection * pos;
 }

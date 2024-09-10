@@ -9,6 +9,7 @@ import org.lwjgl.system.MemoryUtil
 import org.poly2tri.Poly2Tri
 import org.poly2tri.geometry.polygon.Polygon
 import java.awt.Color
+import java.awt.PrintJob
 import java.nio.FloatBuffer
 import kotlin.collections.ArrayList
 import kotlin.math.PI
@@ -134,6 +135,32 @@ class Mesh(
             for (position in positions) {
                 vertices.addAll(position)
                 vertices.addAll(colorFloats)
+            }
+            return fromVertices(vertices.toFloatArray())
+        }
+
+        fun from2DPolygons(polygons: List<Polygon>, color: Color): Mesh {
+            val vertices = ArrayList<Float>()
+
+            for (polygon in polygons) {
+                // Triangulate
+                try {
+                    Poly2Tri.triangulate(polygon)
+                    val triangles = polygon.triangles
+
+                    // Get vertices
+                    val colorFloats = unpackColor(color)
+                    for (triangle in triangles) {
+                        for (point in triangle.points) {
+                            vertices.add(point.x.toFloat())
+                            vertices.add(point.y.toFloat())
+
+                            vertices.addAll(colorFloats)
+                        }
+                    }
+                } catch (e: Exception) {
+                    // TODO triangulation fails rarely. Why?
+                }
             }
             return fromVertices(vertices.toFloatArray())
         }

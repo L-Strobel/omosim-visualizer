@@ -11,14 +11,14 @@ import kotlin.time.TimeSource
 class Visualizer {
     private lateinit var window: Window
     private lateinit var agentRenderer: Renderer
-    private val bgRenderers: MutableList<Renderer> = mutableListOf()
+    private lateinit var bgRenderer: Renderer
     private var aspect: Float = 1f
     private val vAgents: List<VisualAgent>
     private val timeSource = TimeSource.Monotonic
     private var lastTime = timeSource.markNow()
     private var totalTime = 0L
     private var positions: List<Pair<Float, Float>>
-    private var speed = 100f // Speed-up compared to real time
+    private var speed = 20f // Speed-up compared to real time
     private val bBox: Array<Float>
 
     init {
@@ -36,7 +36,7 @@ class Visualizer {
 
     private fun init() {
         // Init window
-        window = Window(1600,900, "")
+        window = Window(2560,1440, "")
         aspect = window.getAspect()
 
         // Init GL
@@ -46,23 +46,21 @@ class Visualizer {
         // glEnable(GL_BLEND)
         // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-        glClearColor(232f / 255f, 190f / 255f, 136f / 255f, 1.0f) // Set the clear color
+        glClearColor(0.15f , 0.15f, 0.15f, 1.0f)
 
         // Init renderers
-        val mesh = Mesh.basicCircle(10, Color.darkGray)
+        val mesh = Mesh.basicCircle(5, Color.CYAN)
         agentRenderer = Renderer(mesh, vAgents.size)
 
         // Read background data
-        val bgMeshes = BackgroundReader.readOSM(
+        val bgMesh = BackgroundReader.readOSM(
             File("C:/Users/les29rq/Nextcloud/Projekte/08_data/OSM/bayern-latest.osm.pbf"),
             bBox[0].toDouble(),
             bBox[1].toDouble(),
             bBox[2].toDouble(),
             bBox[3].toDouble()
         )
-        for (bgMesh in bgMeshes) {
-            bgRenderers.add(Renderer(bgMesh, 1))
-        }
+        bgRenderer = Renderer(bgMesh, 1)
 
         // Start timer
         lastTime = timeSource.markNow()
@@ -79,9 +77,7 @@ class Visualizer {
     }
 
     private fun close() {
-        for (bgRenderer in bgRenderers) {
-            bgRenderer.close()
-        }
+        bgRenderer.close()
         agentRenderer.close()
         window.close()
         glfwTerminate()
@@ -101,12 +97,10 @@ class Visualizer {
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
         // Plot background
-        for (bgRenderer in bgRenderers) {
-            bgRenderer.render(Matrix3x2f())
-        }
+        bgRenderer.render(Matrix3x2f())
 
         val model = Matrix3x2f()
-            .scale(0.01f * aspect, 0.01f)
+            .scale(0.002f * aspect, 0.002f)
 
         agentRenderer.renderInstanced( model, positions )
 

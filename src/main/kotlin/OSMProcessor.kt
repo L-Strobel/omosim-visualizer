@@ -16,7 +16,7 @@ import org.openstreetmap.osmosis.core.task.v0_6.Sink
  * Enumeration of all OSM map objects used in OMOD
  */
 enum class MapObjectType {
-    BUILDING, HIGHWAY
+    BUILDING, HIGHWAY, FOREST, WATER
 }
 
 /**
@@ -261,7 +261,18 @@ class OSMProcessor(idTrackerType: IdTrackerType,
         for (tag in entity.tags) {
             val type = when (tag.key) {
                 "building"  -> MapObjectType.BUILDING
-                "highway"    -> MapObjectType.HIGHWAY
+                "highway"   -> MapObjectType.HIGHWAY
+                "waterway"  -> MapObjectType.WATER
+                "natural"  -> when(tag.value) {
+                    "water" ->MapObjectType.WATER
+                    else -> continue
+                }
+                "landuse"   -> {
+                    when(tag.value) {
+                        "forest" ->MapObjectType.FOREST
+                        else -> continue
+                    }
+                }
                 else -> continue
             }
             rslt.add(type)

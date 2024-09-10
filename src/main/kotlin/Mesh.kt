@@ -142,11 +142,16 @@ class Mesh(
         fun from2DPolygons(polygons: List<Polygon>, colors: List<Color>): Mesh {
             val vertices = ArrayList<Float>()
 
+            var nVertices = 0
+            var nTriangles = 0
             for ((polygon, color) in polygons.zip(colors)) {
                 // Triangulate
                 try {
                     Poly2Tri.triangulate(polygon)
                     val triangles = polygon.triangles
+
+                    nVertices += polygon.points.size
+                    nTriangles += triangles.size
 
                     // Get vertices
                     val colorFloats = unpackColor(color)
@@ -162,6 +167,9 @@ class Mesh(
                     // TODO triangulation fails rarely. Why?
                 }
             }
+            println("${polygons.size}")
+            println("$nVertices")
+            println("$nTriangles")
             return fromVertices(vertices.toFloatArray())
         }
 

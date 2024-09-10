@@ -9,7 +9,6 @@ import org.lwjgl.system.MemoryUtil
 import org.poly2tri.Poly2Tri
 import org.poly2tri.geometry.polygon.Polygon
 import java.awt.Color
-import java.awt.PrintJob
 import java.nio.FloatBuffer
 import kotlin.collections.ArrayList
 import kotlin.math.PI
@@ -20,7 +19,9 @@ class Mesh(
     val vbo: Int,
     val vao: Int,
     val size: Int,
-    val drawMode: Int
+    val drawMode: Int,
+    val vboIdx: Int? = null,
+    val indices: IntArray = intArrayOf()
 ) {
     private var instVBO: Int = 0
     private var instFB: FloatBuffer? = null
@@ -141,36 +142,45 @@ class Mesh(
 
         fun from2DPolygons(polygons: List<Polygon>, colors: List<Color>): Mesh {
             val vertices = ArrayList<Float>()
+            val indices = ArrayList<Int>()
+            val uniqueColors = colors.toSet()
+            val idxMap = mutableMapOf<Color, MutableMap<Pair<Float, Float>, Int>>()
+            for (color in uniqueColors) {
+                idxMap[color] = mutableMapOf()
+            }
+            var runningIdx = 0
 
-            var nVertices = 0
-            var nTriangles = 0
             for ((polygon, color) in polygons.zip(colors)) {
                 // Triangulate
                 try {
                     Poly2Tri.triangulate(polygon)
                     val triangles = polygon.triangles
 
-                    nVertices += polygon.points.size
-                    nTriangles += triangles.size
-
                     // Get vertices
                     val colorFloats = unpackColor(color)
                     for (triangle in triangles) {
                         for (point in triangle.points) {
-                            vertices.add(point.x.toFloat())
-                            vertices.add(point.y.toFloat())
-
-                            vertices.addAll(colorFloats)
+                            val x = point.x.toFloat()
+                            val y = point.y.toFloat()
+                            val pnt = Pair(x, y)
+                            if (idxMap[color]!!.containsKey(pnt)) {
+                                val vIdx = idxMap[color]!![pnt]!!
+                                indices.add(vIdx)
+                            } else {
+                                vertices.add(x)
+                                vertices.add(y)
+                                vertices.addAll(colorFloats)
+                                idxMap[color]!![pnt] = runningIdx
+                                indices.add(runningIdx)
+                                runningIdx += 1
+                            }
                         }
                     }
                 } catch (e: Exception) {
                     // TODO triangulation fails rarely. Why?
                 }
             }
-            println("${polygons.size}")
-            println("$nVertices")
-            println("$nTriangles")
-            return fromVertices(vertices.toFloatArray())
+            return fromVertices(vertices.toFloatArray(), indices.toIntArray())
         }
 
         fun from2DPolygon(polygon: Polygon, color: Color): Mesh {
@@ -208,6 +218,35 @@ class Mesh(
             }
             glBindVertexArray(0)
             return Mesh(vbo!!, vao, vertices.size, drawMode)
+        }
+
+        private fun fromVertices(vertices: FloatArray, indices: IntArray, drawMode: Int = GL_TRIANGLES): Mesh {
+            val vao: Int = glGenVertexArrays()
+            glBindVertexArray(vao)
+            var vbo: Int?
+            stackPush().use { _ ->
+                val buffer = BufferUtils.createFloatBuffer(vertices.size)
+                buffer.put(vertices)
+                buffer.rewind()
+
+                vbo = glGenBuffers()
+                glBindBuffer(GL_ARRAY_BUFFER, vbo!!)
+                glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW)
+                glBindBuffer(GL_ARRAY_BUFFER, 0)
+            }
+            var vboIdx: Int?
+            stackPush().use { _ ->
+                val buffer = BufferUtils.createIntBuffer(indices.size)
+                buffer.put(indices)
+                buffer.rewind()
+
+                vboIdx = glGenBuffers()
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboIdx!!)
+                glBufferData(GL_ELEMENT_ARRAY_BUFFER, buffer, GL_STATIC_DRAW)
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+            }
+            glBindVertexArray(0)
+            return Mesh(vbo!!, vao, vertices.size, drawMode, vboIdx, indices)
         }
     }
 }

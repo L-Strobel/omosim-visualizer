@@ -1,6 +1,7 @@
 package de.uniwuerzburg.omodvisualizer
 
 import org.joml.*
+import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.glBindVertexArray
 import org.lwjgl.opengl.GL31.glDrawArraysInstanced
@@ -20,6 +21,16 @@ class Renderer(private val mesh: Mesh, instances: Int) {
     }
 
     fun render(projection: Matrix4f, model: Matrix4f) {
+        bindVAO()
+        shaderProgramme.addUniform(projection, "projection")
+        shaderProgramme.addUniform(model, "model")
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.vboIdx!!)
+        glDrawElements(GL_TRIANGLES, mesh.indices.size, GL_UNSIGNED_INT,0)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+        unbindVAO()
+    }
+
+    fun renderBasic(projection: Matrix4f, model: Matrix4f) {
         bindVAO()
         shaderProgramme.addUniform(projection, "projection")
         shaderProgramme.addUniform(model, "model")

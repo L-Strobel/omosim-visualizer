@@ -43,10 +43,12 @@ class BackgroundReader {
             val scaleLat = { y: Float ->  (y - minLat) / (maxLat - minLat) * 2 - 1 }
 
             // Triangulate OSM data
+            val myLightGray = Color(0.4f, 0.4f, 0.4f)
+            val colors = mutableListOf<Color>()
             val polygons = mutableListOf<Polygon>()
             for (mapObject in processor.mapObjects) {
-                if ((mapObject.geometry is org.locationtech.jts.geom.Polygon) && mapObject.geometry.exteriorRing.isSimple){
-                    val geom = TopologyPreservingSimplifier.simplify(mapObject.geometry, 0.0001) as org.locationtech.jts.geom.Polygon
+                if ((mapObject.geometry is org.locationtech.jts.geom.Polygon) && mapObject.geometry.exteriorRing.isSimple && (mapObject.type == MapObjectType.BUILDING)){
+                    val geom = TopologyPreservingSimplifier.simplify(mapObject.geometry, 0.0000001) as org.locationtech.jts.geom.Polygon
                     val extPoints = geom.exteriorRing.coordinates.dropLast(1).map { coord ->
                         val x = scaleLon(coord.y.toFloat())
                         val y = scaleLat(coord.x.toFloat())
@@ -54,10 +56,24 @@ class BackgroundReader {
                     }
                     val polygon = Polygon(extPoints)
                     polygons.add(polygon)
+                    colors.add(Color.BLACK)
+                } else {
+                    if ((mapObject.geometry is org.locationtech.jts.geom.LineString) && (mapObject.type == MapObjectType.HIGHWAY)){
+                        val geom = mapObject.geometry.buffer(0.00002) as org.locationtech.jts.geom.Polygon
+                        val extPoints = geom.exteriorRing.coordinates.dropLast(1).map { coord ->
+                            val x = scaleLon(coord.y.toFloat())
+                            val y = scaleLat(coord.x.toFloat())
+                            PolygonPoint(x, y)
+                        }
+                        val polygon = Polygon(extPoints)
+                        polygons.add(polygon)
+
+                        colors.add(myLightGray)
+                    }
                 }
             }
 
-            val mesh = Mesh.from2DPolygons(polygons, Color.black)
+            val mesh = Mesh.from2DPolygons(polygons, colors)
             println("OSM data read!")
             return mesh
         }

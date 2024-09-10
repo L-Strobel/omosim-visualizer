@@ -19,8 +19,8 @@ class VisualAgent (
         var changed = false
         var lastPoint = trace.first()
         while (diff > 0) {
+            if (trace.size <= 1) { break }
             lastPoint = trace.removeFirst()
-            if (trace.isEmpty()) { break }
             diff = simTime - trace.first().stop
             changed = true
         }

@@ -139,10 +139,10 @@ class Mesh(
             return fromVertices(vertices.toFloatArray())
         }
 
-        fun from2DPolygons(polygons: List<Polygon>, color: Color): Mesh {
+        fun from2DPolygons(polygons: List<Polygon>, colors: List<Color>): Mesh {
             val vertices = ArrayList<Float>()
 
-            for (polygon in polygons) {
+            for ((polygon, color) in polygons.zip(colors)) {
                 // Triangulate
                 try {
                     Poly2Tri.triangulate(polygon)

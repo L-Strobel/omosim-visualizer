@@ -10,6 +10,8 @@ import org.lwjgl.opengl.GL20.*
 import java.awt.Color
 import java.io.File
 import java.util.Vector
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.time.TimeSource
 
 class Visualizer {
@@ -20,10 +22,13 @@ class Visualizer {
     private val vAgents: List<VisualAgent>
     private val timeSource = TimeSource.Monotonic
     private var lastTime = timeSource.markNow()
-    private var totalTime = 0L
+    private var simTime = 0.0
     private var positions: List<Pair<Float, Float>>
-    private var speed = 20f // Speed-up compared to real time
+    private var speed = 10f // Speed-up compared to real time
     private val bBox: Array<Float>
+    private var zoom = 1f
+    private var up = 0f
+    private var right = 0f
 
     init {
         val (agents, bb) = VisualAgent.fromFile(File(("debugIn/bayreuth_smallTest.json")))
@@ -43,13 +48,6 @@ class Visualizer {
         window = Window(2560,1440, "")
         aspect = window.getAspect()
 
-
-        val (width, height) = window.getCurrentWindowSize()
-        val v = 0.5f
-        val projection = Matrix4f().ortho2D(-v, v, -v, v)
-
-        val test = Vector4f(1f, 0f, 0f, 1f).mulProject(projection)
-
         // Init GL
         GL.createCapabilities() // Creates the GLCapabilities instance and makes the OpenGL bindings available for use.
 
@@ -60,7 +58,7 @@ class Visualizer {
         glClearColor(0.15f , 0.15f, 0.15f, 1.0f)
 
         // Init renderers
-        val mesh = Mesh.basicCircle(5, Color.CYAN)
+        val mesh = Mesh.basicCircle(20, Color.CYAN)
         agentRenderer = Renderer(mesh, vAgents.size)
 
         // Read background data
@@ -73,9 +71,33 @@ class Visualizer {
         )
         bgRenderer = Renderer(bgMesh, 1)
 
+        // Control
+        glfwSetKeyCallback(window.ref) { window: Long, key: Int, scancode: Int, action: Int, mods: Int ->
+            val moveAction = (action == GLFW_REPEAT ) || (action == GLFW_PRESS )
+            val moveStrength = 0.02f
+            if (key == GLFW_KEY_W && moveAction) {
+                up += moveStrength
+            } else if (key == GLFW_KEY_A && moveAction) {
+                right -= moveStrength
+            } else if (key == GLFW_KEY_S && moveAction) {
+                up -= moveStrength
+            } else if (key == GLFW_KEY_D && moveAction) {
+                right += moveStrength
+            } else if (key == GLFW_KEY_E  && action == GLFW_RELEASE) {
+                speed *= 2
+            } else if (key == GLFW_KEY_R && action == GLFW_RELEASE)  {
+                speed /= 2
+            }
+        }
+        glfwSetScrollCallback(window.ref) {  window: Long, xoffset: Double, yoffset: Double ->
+            zoom += - yoffset.toFloat() * 0.05f
+            zoom = max(zoom, 0.05f)
+            zoom = min(zoom, 3f)
+        }
+
         // Start timer
         lastTime = timeSource.markNow()
-        totalTime = 0L
+        simTime = 0.0
     }
 
     private fun loop() {
@@ -83,7 +105,7 @@ class Visualizer {
             val delta = getTimeDelta()
             updateState(delta)
             render()
-            print("FPS: ${1e9 / delta}, Time: ${totalTime / 1e9  * speed}\r") // Print FPS
+            print("FPS: ${1e9 / delta}, Time: ${simTime}\r") // Print FPS
         }
     }
 
@@ -96,10 +118,9 @@ class Visualizer {
     }
 
     private fun updateState(delta: Long) {
-        totalTime += delta
-        val simMinute = totalTime / 1e9 * speed
+        simTime += delta / 1e9 * speed
         for (agent in vAgents) {
-            agent.updatePosition(simMinute)
+            agent.updatePosition(simTime)
         }
         positions = vAgents.map { it.x to it.y }
     }
@@ -107,8 +128,7 @@ class Visualizer {
     private fun render() {
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-        val v = 0.5f
-        val projection = Matrix4f().ortho2D(-v, v, -v, v)
+        val projection = Matrix4f().ortho2D(-zoom + right, zoom + right, -zoom + up, zoom + up)
 
         // Plot background
         bgRenderer.render(projection, Matrix4f())
@@ -117,7 +137,6 @@ class Visualizer {
             .scale(0.002f * aspect, 0.002f, 1f)
 
         agentRenderer.renderInstanced(projection, model, positions )
-
 
         glfwSwapBuffers(window.ref) // swap the color buffers
         glfwPollEvents() // Poll for window events, like keystrokes.

@@ -3,9 +3,12 @@ package de.uniwuerzburg.omodvisualizer
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
+import org.lwjgl.glfw.GLFWKeyCallbackI
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.NULL
+import java.awt.SystemColor.window
 import java.nio.IntBuffer
+
 
 class Window (width: Int, height: Int, title: String) {
     val ref: Long

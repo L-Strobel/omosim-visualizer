@@ -40,26 +40,26 @@ class VisualAgent (
     }
 
     companion object {
-        fun fromFile(file: File) : List<VisualAgent> {
+        fun fromFile(file: File) : Pair<List<VisualAgent>, Array<Float>> {
             val omodData = readJson<List<OutputEntry>>(file)
 
             // Scale coordinates to display coordinates
-            var minX = Float.MAX_VALUE
-            var maxX = -1 * Float.MAX_VALUE
-            var minY = Float.MAX_VALUE
-            var maxY = -1 * Float.MAX_VALUE
+            var minLat = Float.MAX_VALUE
+            var maxLat = -1 * Float.MAX_VALUE
+            var minLon = Float.MAX_VALUE
+            var maxLon = -1 * Float.MAX_VALUE
             for (agent in omodData) {
                 val firstLeg = agent.mobilityDemand.first().plan.first() as OutputActivity
-                minX = min(firstLeg.lon.toFloat(), minX)
-                maxX = max(firstLeg.lon.toFloat(), maxX)
-                minY = min(firstLeg.lat.toFloat(), minY)
-                maxY = max(firstLeg.lat.toFloat(), maxY)
+                minLat = min(firstLeg.lat.toFloat(), minLat)
+                maxLat = max(firstLeg.lat.toFloat(), maxLat)
+                minLon = min(firstLeg.lon.toFloat(), minLon)
+                maxLon = max(firstLeg.lon.toFloat(), maxLon)
             }
-            val scaleX = { x: Float ->  (x - minX) / (maxX - minX) * 2 - 1 }
-            val scaleY = { y: Float ->  (y - minY) / (maxY - minY) * 2 - 1 }
+            val scaleLat = { y: Float ->  (y - minLat) / (maxLat - minLat) * 2 - 1 }
+            val scaleLon = { x: Float ->  (x - minLon) / (maxLon - minLon) * 2 - 1 }
 
-            val vAgents = omodData.map{ getVAgent(it, scaleX, scaleY) }
-            return vAgents
+            val vAgents = omodData.map{ getVAgent(it, scaleLat, scaleLon) }
+            return vAgents to arrayOf(minLat, maxLat, minLon, maxLon)
         }
 
         /**
@@ -67,8 +67,8 @@ class VisualAgent (
          */
         private fun getVAgent(
             agent: OutputEntry,
-            scaleX: (x: Float) -> Float,
-            scaleY: (y: Float) -> Float
+            scaleLat: (x: Float) -> Float,
+            scaleLon: (y: Float) -> Float
         ) : VisualAgent {
             val trace = mutableListOf<TracePoint>()
             var clockTime = 0.0
@@ -83,8 +83,8 @@ class VisualAgent (
                                 TracePoint(
                                     totalTime,
                                     totalTime + time,
-                                    scaleX(leg.lon.toFloat()),
-                                    scaleY(leg.lat.toFloat())
+                                    scaleLon(leg.lon.toFloat()),
+                                    scaleLat(leg.lat.toFloat())
                                 )
                             )
 
@@ -122,8 +122,8 @@ class VisualAgent (
                                     TracePoint(
                                         totalTime + pntTime,
                                         totalTime + pntTime,
-                                        scaleX(coord.y.toFloat()),
-                                        scaleY(coord.x.toFloat())
+                                        scaleLon(coord.y.toFloat()),
+                                        scaleLat(coord.x.toFloat())
                                     )
                                 )
                                 lastCoord = coord

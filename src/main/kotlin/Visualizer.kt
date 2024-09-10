@@ -1,33 +1,32 @@
 package de.uniwuerzburg.omodvisualizer
 
-import de.uniwuerzburg.omod.io.json.OutputActivity
-import de.uniwuerzburg.omod.io.json.OutputTrip
 import org.joml.Matrix3x2f
-import org.locationtech.jts.geom.Coordinate
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL20.*
-import us.dustinj.timezonemap.containsInclusive
 import java.awt.Color
 import java.io.File
-import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.time.Duration.Companion.microseconds
 import kotlin.time.TimeSource
 
 class Visualizer {
     private lateinit var window: Window
-    private lateinit var renderer: Renderer
+    private lateinit var agentRenderer: Renderer
+    private val bgRenderers: MutableList<Renderer> = mutableListOf()
     private var aspect: Float = 1f
-    private val vAgents = VisualAgent.fromFile(File(("debugIn/bayreuth_smallTest.json")))
+    private val vAgents: List<VisualAgent>
     private val timeSource = TimeSource.Monotonic
     private var lastTime = timeSource.markNow()
     private var totalTime = 0L
-    private var positions = List(vAgents.size) { 0f to 0f }
+    private var positions: List<Pair<Float, Float>>
     private var speed = 100f // Speed-up compared to real time
+    private val bBox: Array<Float>
+
+    init {
+        val (agents, bb) = VisualAgent.fromFile(File(("debugIn/bayreuth_smallTest.json")))
+        vAgents = agents
+        bBox = bb
+        positions = List(vAgents.size) { 0f to 0f }
+    }
 
     fun run() {
         init()
@@ -51,7 +50,19 @@ class Visualizer {
 
         // Init renderers
         val mesh = Mesh.basicCircle(10, Color.darkGray)
-        renderer = Renderer(mesh, vAgents.size)
+        agentRenderer = Renderer(mesh, vAgents.size)
+
+        // Read background data
+        val bgMeshes = BackgroundReader.readOSM(
+            File("C:/Users/les29rq/Nextcloud/Projekte/08_data/OSM/bayern-latest.osm.pbf"),
+            bBox[0].toDouble(),
+            bBox[1].toDouble(),
+            bBox[2].toDouble(),
+            bBox[3].toDouble()
+        )
+        for (bgMesh in bgMeshes) {
+            bgRenderers.add(Renderer(bgMesh, 1))
+        }
 
         // Start timer
         lastTime = timeSource.markNow()
@@ -68,7 +79,10 @@ class Visualizer {
     }
 
     private fun close() {
-        renderer.close()
+        for (bgRenderer in bgRenderers) {
+            bgRenderer.close()
+        }
+        agentRenderer.close()
         window.close()
         glfwTerminate()
         glfwSetErrorCallback(null)?.free()
@@ -86,10 +100,16 @@ class Visualizer {
     private fun render() {
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
+        // Plot background
+        for (bgRenderer in bgRenderers) {
+            bgRenderer.render(Matrix3x2f())
+        }
+
         val model = Matrix3x2f()
             .scale(0.01f * aspect, 0.01f)
 
-        renderer.renderInstanced( model, positions )
+        agentRenderer.renderInstanced( model, positions )
+
 
         glfwSwapBuffers(window.ref) // swap the color buffers
         glfwPollEvents() // Poll for window events, like keystrokes.

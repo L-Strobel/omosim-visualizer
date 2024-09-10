@@ -12,7 +12,9 @@ class Renderer(private val mesh: Mesh, instances: Int) {
         bindVAO()
         shaderProgramme.link()
         mesh.specifyAttributeArray(shaderProgramme)
-        mesh.enableInstancing(instances, shaderProgramme)
+        if (instances > 1) {
+            mesh.enableInstancing(instances, shaderProgramme)
+        }
         shaderProgramme.use()
         unbindVAO()
     }

@@ -1,18 +1,10 @@
 package de.uniwuerzburg.omodvisualizer
 
-import com.google.common.math.Quantiles.Scale
 import de.uniwuerzburg.omod.io.json.*
 import org.locationtech.jts.geom.Coordinate
 import java.io.File
 import kotlin.math.max
 import kotlin.math.min
-
-class TracePoint (
-    val start: Double,
-    val stop: Double,
-    val x: Float,
-    val y: Float
-)
 
 class VisualAgent (
     private val trace: ArrayDeque<TracePoint>,
@@ -21,7 +13,7 @@ class VisualAgent (
     var y = trace.first().y
 
     fun updatePosition(simTime: Double) {
-        if (trace.isEmpty()) { return }
+        if (trace.isEmpty()) { return } // This agent is done
 
         var diff = simTime - trace.first().stop
         var changed = false
@@ -39,6 +31,7 @@ class VisualAgent (
                 x = trace.first().x
                 y = trace.first().y
             } else {
+                // Interpolate position between points
                 val alpha = (1 - (simTime - thisPoint.start) / (thisPoint.start - lastPoint.stop)).toFloat()
                 x = lastPoint.x + alpha * (thisPoint.x - lastPoint.x)
                 y = lastPoint.y + alpha * (thisPoint.y - lastPoint.y)
@@ -50,7 +43,7 @@ class VisualAgent (
         fun fromFile(file: File) : List<VisualAgent> {
             val omodData = readJson<List<OutputEntry>>(file)
 
-            // BBox
+            // Scale coordinates to display coordinates
             var minX = Float.MAX_VALUE
             var maxX = -1 * Float.MAX_VALUE
             var minY = Float.MAX_VALUE

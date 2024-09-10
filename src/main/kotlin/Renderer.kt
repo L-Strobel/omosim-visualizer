@@ -9,36 +9,35 @@ class Renderer(private val mesh: Mesh, instances: Int) {
     private val shaderProgramme = ShaderProgram(listOf("/2D.vert", "/monochrome.frag"))
 
     init {
-        bind()
-        glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
+        bindVAO()
         shaderProgramme.link()
         mesh.specifyAttributeArray(shaderProgramme)
         mesh.enableInstancing(instances, shaderProgramme)
         shaderProgramme.use()
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        unbind()
-
-        /*
-        shaderProgramme.addUniform(0.01f, "radius")
-        shaderProgramme.addUniform(Vector2i(windowRes.first, windowRes.second), "resolution")
-        */
+        unbindVAO()
     }
 
-    fun render(model: Matrix3x2f, positions: List<Pair<Float, Float>>) {
-        bind()
+    fun render(model: Matrix3x2f) {
+        bindVAO()
         shaderProgramme.addUniform(model, "model")
-        mesh.prepareDraw(positions)
-        //glDrawArrays (mesh.drawMode, 0, mesh.size)
-        glDrawArraysInstanced (mesh.drawMode, 0, mesh.size, mesh.instances!!)
-        mesh.cleanUpDraw()
-        unbind()
+        glDrawArrays (mesh.drawMode, 0, mesh.size)
+        unbindVAO()
     }
 
-    private fun bind() {
+    fun renderInstanced(model: Matrix3x2f, positions: List<Pair<Float, Float>>) {
+        bindVAO()
+        shaderProgramme.addUniform(model, "model")
+        mesh.prepareInstancedDraw(positions)
+        glDrawArraysInstanced (mesh.drawMode, 0, mesh.size, mesh.instances)
+        mesh.cleanUpInstancedDraw()
+        unbindVAO()
+    }
+
+    private fun bindVAO() {
         glBindVertexArray(mesh.vao)
     }
 
-    private fun unbind() {
+    private fun unbindVAO() {
         glBindVertexArray(0)
     }
 

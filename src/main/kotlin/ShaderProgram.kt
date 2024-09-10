@@ -2,14 +2,8 @@ package de.uniwuerzburg.omodvisualizer
 
 import org.joml.Matrix3x2f
 import org.joml.Vector2i
-import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL20.*
-import org.lwjgl.opengl.GL33.glVertexAttribDivisor
 import org.lwjgl.system.MemoryStack.stackPush
-import org.lwjgl.system.MemoryUtil
-import java.nio.ByteBuffer
-import java.nio.FloatBuffer
-import java.util.*
 
 class ShaderProgram(shaders: List<String>) {
     val ref: Int = glCreateProgram()
@@ -18,19 +12,6 @@ class ShaderProgram(shaders: List<String>) {
     init {
         for (shader in shaders) {
             addShader(shader)
-        }
-    }
-
-    fun addUniform(value: Float, name: String) {
-        val uniModel = glGetUniformLocation(ref, name)
-        glUniform1f(uniModel, value)
-    }
-
-    fun addUniform(vector2i: Vector2i, name: String) {
-        stackPush().use { stack ->
-            val fb = vector2i.get(stack.mallocInt(2))
-            val uniModel = glGetUniformLocation(ref, name)
-            glUniform2iv(uniModel, fb)
         }
     }
 

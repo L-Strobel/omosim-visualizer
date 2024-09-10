@@ -10,7 +10,6 @@ import org.poly2tri.Poly2Tri
 import org.poly2tri.geometry.polygon.Polygon
 import java.awt.Color
 import java.nio.FloatBuffer
-import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.PI
 import kotlin.math.cos
@@ -22,34 +21,37 @@ class Mesh(
     val size: Int,
     val drawMode: Int
 ) {
-    var instVBO: Int = 0
-    var instFB: FloatBuffer? = null
-    var instances: Int? = null
+    private var instVBO: Int = 0
+    private var instFB: FloatBuffer? = null
+    var instances: Int = 1
 
     fun close() {
         glDeleteVertexArrays(vao);
         glDeleteBuffers(vbo)
     }
 
-    fun prepareDraw(positions: List<Pair<Float, Float>>) {
+    fun prepareInstancedDraw(positions: List<Pair<Float, Float>>) {
         require(positions.size == instances)
 
+        // Fill buffer with new instance locations
         for ((x, y) in positions) {
             instFB!!.put(x)
             instFB!!.put(y)
         }
         instFB!!.rewind()
-
         glBindBuffer(GL_ARRAY_BUFFER, instVBO);
         GL20.glBufferSubData(GL_ARRAY_BUFFER, 0, instFB!!);
         glBindBuffer(GL_ARRAY_BUFFER, 0)
     }
 
-    fun cleanUpDraw() {
+    fun cleanUpInstancedDraw() {
         instFB!!.clear()
     }
 
     fun enableInstancing(n: Int, shaderProgram: ShaderProgram) {
+        if(n <= 1) {
+            throw IllegalStateException("Need at least to objects for instancing!")
+        }
         instances = n
 
         instVBO = glGenBuffers()

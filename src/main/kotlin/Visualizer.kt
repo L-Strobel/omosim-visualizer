@@ -23,12 +23,11 @@ class Visualizer {
     private lateinit var renderer: Renderer
     private var aspect: Float = 1f
     private val vAgents = VisualAgent.fromFile(File(("debugIn/bayreuth_smallTest.json")))
-    private val nBalls = vAgents.size
     private val timeSource = TimeSource.Monotonic
     private var lastTime = timeSource.markNow()
     private var totalTime = 0L
-    private var positions = List(nBalls) { 0f to 0f }
-    private lateinit var bbox: Array<Float>
+    private var positions = List(vAgents.size) { 0f to 0f }
+    private var speed = 100f // Speed-up compared to real time
 
     fun run() {
         init()
@@ -52,7 +51,7 @@ class Visualizer {
 
         // Init renderers
         val mesh = Mesh.basicCircle(10, Color.darkGray)
-        renderer = Renderer(mesh, nBalls)
+        renderer = Renderer(mesh, vAgents.size)
 
         // Start timer
         lastTime = timeSource.markNow()
@@ -64,7 +63,7 @@ class Visualizer {
             val delta = getTimeDelta()
             updateState(delta)
             render()
-            print("FPS: ${1e9 / delta}, Time: ${totalTime / 1e9  * 100}\r") // Print FPS
+            print("FPS: ${1e9 / delta}, Time: ${totalTime / 1e9  * speed}\r") // Print FPS
         }
     }
 
@@ -77,7 +76,7 @@ class Visualizer {
 
     private fun updateState(delta: Long) {
         totalTime += delta
-        val simMinute = totalTime / 1e9 * 100
+        val simMinute = totalTime / 1e9 * speed
         for (agent in vAgents) {
             agent.updatePosition(simMinute)
         }
@@ -88,17 +87,9 @@ class Visualizer {
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
         val model = Matrix3x2f()
-        //    .scale(1f * aspect, 1f)
             .scale(0.01f * aspect, 0.01f)
 
-        renderer.render( model, positions )
-
-        /*for (i in 0 until nBalls) {
-            val model = Matrix3x2f()
-                .translate(r * cos(angle) + startPositions[i].first, r * sin(angle) + startPositions[i].second)
-                .scale(0.01f * aspect, 0.01f)
-            renderer.render( model )
-        }*/
+        renderer.renderInstanced( model, positions )
 
         glfwSwapBuffers(window.ref) // swap the color buffers
         glfwPollEvents() // Poll for window events, like keystrokes.

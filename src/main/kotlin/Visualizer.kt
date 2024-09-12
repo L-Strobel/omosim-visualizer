@@ -29,6 +29,7 @@ class Visualizer {
     private var zoom = 1f
     private var up = 0f
     private var right = 0f
+    private var pause = 1f
 
     init {
         val (agents, bb) = VisualAgent.fromFile(File(("debugIn/bayreuth_smallTest.json")))
@@ -118,7 +119,7 @@ class Visualizer {
     }
 
     private fun updateState(delta: Long) {
-        simTime += delta / 1e9 * speed
+        simTime += delta / 1e9 * speed * pause
         for (agent in vAgents) {
             agent.updatePosition(simTime)
         }

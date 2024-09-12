@@ -10,7 +10,7 @@ import java.awt.SystemColor.window
 import java.nio.IntBuffer
 
 
-class Window (width: Int, height: Int, title: String) {
+class Window (title: String) {
     val ref: Long
 
     init {
@@ -25,8 +25,11 @@ class Window (width: Int, height: Int, title: String) {
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE)
         glfwWindowHint(GLFW_SAMPLES, 4)
 
+        // Get the resolution of the primary monitor
+        val vidMode = glfwGetVideoMode(glfwGetPrimaryMonitor())!!
+
         // Create the window
-        ref = glfwCreateWindow(width, height, title, NULL, NULL)
+        ref = glfwCreateWindow(vidMode.width(), vidMode.height(), title, glfwGetPrimaryMonitor(), NULL)
         if (ref == NULL) throw RuntimeException("Failed to create the GLFW window")
 
         stackPush().use { stack ->
@@ -35,9 +38,6 @@ class Window (width: Int, height: Int, title: String) {
 
             // Get the window size passed to glfwCreateWindow
             glfwGetWindowSize(ref, pWidth, pHeight)
-
-            // Get the resolution of the primary monitor
-            val vidMode = glfwGetVideoMode(glfwGetPrimaryMonitor())!!
 
             // Center the window
             glfwSetWindowPos(

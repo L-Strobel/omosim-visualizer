@@ -41,7 +41,9 @@ class VisualAgent (
 
     companion object {
         @OptIn(ExperimentalSerializationApi::class)
-        fun fromFile(file: File) : Pair<List<VisualAgent>, Array<Float>> {
+        fun fromFile(file: File, windowHeightMeters: Int, aspect: Float) :
+                Triple<List<VisualAgent>, CoordTransformer, Array<Float>>
+        {
             val omodData = Json.decodeFromStream<List<OutputEntry>>(file.inputStream())
 
             // Scale coordinates to display coordinates
@@ -56,11 +58,11 @@ class VisualAgent (
                 minLon = min(firstLeg.lon.toFloat(), minLon)
                 maxLon = max(firstLeg.lon.toFloat(), maxLon)
             }
-            val scaleLat = { y: Float ->  (y - minLat) / (maxLat - minLat) * 2 - 1 }
-            val scaleLon = { x: Float ->  (x - minLon) / (maxLon - minLon) * 2 - 1 }
+            val centerLatLon = Coordinate(minLat + (maxLat - minLat) / 2.0, minLon + (maxLon - minLon) / 2.0)
+            val transformer = CoordTransformer(windowHeightMeters, aspect, centerLatLon)
 
-            val vAgents = omodData.map{ getVAgent(it, scaleLat, scaleLon) }
-            return vAgents to arrayOf(minLat, maxLat, minLon, maxLon)
+            val vAgents = omodData.map{ getVAgent(it, transformer) }
+            return Triple(vAgents, transformer, arrayOf(minLat, maxLat, minLon, maxLon))
         }
 
         /**
@@ -68,8 +70,7 @@ class VisualAgent (
          */
         private fun getVAgent(
             agent: OutputEntry,
-            scaleLat: (x: Float) -> Float,
-            scaleLon: (y: Float) -> Float
+            transformer: CoordTransformer
         ) : VisualAgent {
             val trace = mutableListOf<TracePoint>()
             var clockTime = 0.0
@@ -79,13 +80,14 @@ class VisualAgent (
                     when (leg) {
                         is OutputActivity -> {
                             val time = leg.stayTimeMinute ?: max(0.0,  24 * 60 - clockTime)
+                            val coordMeter = transformer.transform(Coordinate(leg.lat, leg.lon))
 
                             trace.add(
                                 TracePoint(
                                     totalTime,
                                     totalTime + time,
-                                    scaleLon(leg.lon.toFloat()),
-                                    scaleLat(leg.lat.toFloat())
+                                    coordMeter.x.toFloat(),
+                                    coordMeter.y.toFloat()
                                 )
                             )
 
@@ -119,12 +121,14 @@ class VisualAgent (
                                 runningDistance += segmentDistance
 
                                 val pntTime = time * runningDistance / totalDistance
+                                val coordMeter = transformer.transform(coord)
+
                                 trace.add(
                                     TracePoint(
                                         totalTime + pntTime,
                                         totalTime + pntTime,
-                                        scaleLon(coord.y.toFloat()),
-                                        scaleLat(coord.x.toFloat())
+                                        coordMeter.x.toFloat(),
+                                        coordMeter.y.toFloat()
                                     )
                                 )
                                 lastCoord = coord

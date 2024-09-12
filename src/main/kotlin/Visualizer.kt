@@ -1,42 +1,37 @@
 package de.uniwuerzburg.omodvisualizer
 
-import org.geotools.referencing.operation.matrix.MatrixFactory
-import org.joml.Matrix3x2f
 import org.joml.Matrix4f
-import org.joml.Vector4f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL20.*
+import org.lwjgl.system.MemoryStack.stackPush
+import org.lwjgl.system.MemoryUtil.NULL
 import java.awt.Color
 import java.io.File
-import java.util.Vector
+import java.nio.IntBuffer
+import javax.swing.Spring.height
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.time.TimeSource
+
 
 class Visualizer {
     private lateinit var window: Window
     private lateinit var agentRenderer: Renderer
     private lateinit var bgRenderer: Renderer
     private var aspect: Float = 1f
-    private val vAgents: List<VisualAgent>
+    private lateinit var vAgents: List<VisualAgent>
     private val timeSource = TimeSource.Monotonic
     private var lastTime = timeSource.markNow()
     private var simTime = 0.0
-    private var positions: List<Pair<Float, Float>>
+    private lateinit var positions: List<Pair<Float, Float>>
     private var speed = 10f // Speed-up compared to real time
-    private val bBox: Array<Float>
+    private lateinit var transformer: CoordTransformer
+    private lateinit var bBox: Array<Float>
     private var zoom = 1f
     private var up = 0f
     private var right = 0f
     private var pause = 1f
-
-    init {
-        val (agents, bb) = VisualAgent.fromFile(File(("debugIn/bayreuth_smallTest.json")))
-        vAgents = agents
-        bBox = bb
-        positions = List(vAgents.size) { 0f to 0f }
-    }
 
     fun run() {
         init()
@@ -46,8 +41,14 @@ class Visualizer {
 
     private fun init() {
         // Init window
-        window = Window(2560,1440, "")
+        window = Window("")
         aspect = window.getAspect()
+
+        val (agents, t, b) = VisualAgent.fromFile(File(("debugIn/wrzb.json")), 7000, aspect)
+        vAgents = agents
+        transformer = t
+        bBox = b
+        positions = List(vAgents.size) { 0f to 0f }
 
         // Init GL
         GL.createCapabilities() // Creates the GLCapabilities instance and makes the OpenGL bindings available for use.
@@ -65,10 +66,11 @@ class Visualizer {
         // Read background data
         val bgMesh = BackgroundReader.readOSM(
             File("C:/Users/les29rq/Nextcloud/Projekte/08_data/OSM/bayern-latest.osm.pbf"),
-            bBox[0].toDouble(),
-            bBox[1].toDouble(),
-            bBox[2].toDouble(),
-            bBox[3].toDouble()
+            bBox[0].toDouble() - 0.05,
+            bBox[1].toDouble() + 0.05,
+            bBox[2].toDouble() -0.1,
+            bBox[3].toDouble() + 0.1,
+            transformer
         )
         bgRenderer = Renderer(bgMesh, 1)
 
@@ -88,6 +90,24 @@ class Visualizer {
                 speed *= 2
             } else if (key == GLFW_KEY_R && action == GLFW_RELEASE)  {
                 speed /= 2
+            } else if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)  {
+                pause = if (pause == 1f) 0f else 1f
+            }else if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)  {
+                stackPush().use { stack ->
+                    val pWidth: IntBuffer = stack.mallocInt(1) // int*
+                    val pHeight: IntBuffer = stack.mallocInt(1) // int*
+                    glfwGetWindowSize(window, pWidth, pHeight)
+                    val vidMode = glfwGetVideoMode(glfwGetPrimaryMonitor())!!
+                    glfwSetWindowMonitor(
+                        window,
+                        NULL,
+                        (vidMode.width() - pWidth[0]) / 2,
+                        (vidMode.height() - pHeight[0]) / 2,
+                        vidMode.width() * 3 / 4,
+                        vidMode.height() * 3 / 4,
+                        vidMode.refreshRate()
+                    )
+                }
             }
         }
         glfwSetScrollCallback(window.ref) {  window: Long, xoffset: Double, yoffset: Double ->

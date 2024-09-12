@@ -1,6 +1,9 @@
 package de.uniwuerzburg.omodvisualizer
 
 import de.uniwuerzburg.omod.io.json.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromStream
 import org.locationtech.jts.geom.Coordinate
 import java.io.File
 import kotlin.math.max
@@ -37,8 +40,9 @@ class VisualAgent (
     }
 
     companion object {
+        @OptIn(ExperimentalSerializationApi::class)
         fun fromFile(file: File) : Pair<List<VisualAgent>, Array<Float>> {
-            val omodData = readJson<List<OutputEntry>>(file)
+            val omodData = Json.decodeFromStream<List<OutputEntry>>(file.inputStream())
 
             // Scale coordinates to display coordinates
             var minLat = Float.MAX_VALUE

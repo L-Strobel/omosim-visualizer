@@ -52,7 +52,6 @@ class BackgroundReader {
                     MapObjectType.HWY_GENERAL -> Color(0.4f, 0.4f, 0.4f)
                     MapObjectType.FOREST -> Color(0.13f, 0.13f, 0.13f)
                     MapObjectType.WATER -> Color(0.1f, 0.1f, 0.15f)
-                    else -> Color.RED // Debug color
                 }
             }
             fun widthMap(type: MapObjectType) : Double {

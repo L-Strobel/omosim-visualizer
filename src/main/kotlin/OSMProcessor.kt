@@ -15,8 +15,9 @@ import org.openstreetmap.osmosis.core.task.v0_6.Sink
 /**
  * Enumeration of all OSM map objects used in OMOD
  */
-enum class MapObjectType {
-    BUILDING, HIGHWAY, FOREST, WATER
+enum class MapObjectType(val zorder: Int) {
+    BUILDING(zorder=10), HWY_MOTORWAY(zorder=7), HWY_PRIMARY(zorder=6), HWY_TRUNK(zorder=6), HWY_SECONDARY(zorder=5),
+    HWY_TERTIARY(zorder=4), HWY_GENERAL(zorder=3), FOREST(zorder=2), WATER(zorder=0)
 }
 
 /**
@@ -261,7 +262,15 @@ class OSMProcessor(idTrackerType: IdTrackerType,
         for (tag in entity.tags) {
             val type = when (tag.key) {
                 "building"  -> MapObjectType.BUILDING
-                "highway"   -> MapObjectType.HIGHWAY
+                "highway"   ->  when(tag.value) {
+                    "motorway" ->  MapObjectType.HWY_MOTORWAY
+                    "primary" -> MapObjectType.HWY_PRIMARY
+                    "secondary" -> MapObjectType.HWY_SECONDARY
+                    "tertiary" -> MapObjectType.HWY_TERTIARY
+                    "trunk" -> MapObjectType.HWY_TRUNK
+                    "motorway_link" -> MapObjectType.HWY_MOTORWAY
+                    else -> MapObjectType.HWY_GENERAL
+                }
                 "waterway"  -> MapObjectType.WATER
                 "natural"  -> when(tag.value) {
                     "water" ->MapObjectType.WATER

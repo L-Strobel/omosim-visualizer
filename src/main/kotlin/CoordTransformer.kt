@@ -1,27 +1,18 @@
 package de.uniwuerzburg.omodvisualizer
 
-import de.uniwuerzburg.omod.utils.CRSTransformer
-import org.geotools.api.referencing.crs.ProjectedCRS
 import org.geotools.geometry.jts.JTS
 import org.geotools.referencing.CRS
-import org.geotools.referencing.ReferencingFactoryFinder
-import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.geotools.referencing.cs.DefaultCartesianCS
-import org.geotools.referencing.factory.ReferencingFactoryContainer
-import org.geotools.referencing.operation.DefaultCoordinateOperationFactory
-import org.geotools.referencing.operation.projection.TransverseMercator
 import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.Geometry
 import org.locationtech.jts.geom.GeometryFactory
 import org.locationtech.jts.geom.Point
-import java.util.*
 import java.util.logging.Level
 import java.util.logging.Logger
 
 class CoordTransformer (
     val windowHeightMeters: Int,
     val aspect: Float,
-    val centerLatLon: Coordinate,
+    centerLatLon: Coordinate,
 ) {
     val geometryFactory: GeometryFactory = GeometryFactory()
     val center: Point
@@ -36,7 +27,13 @@ class CoordTransformer (
         center = toModelCRS(centerPnt) as Point
     }
 
-    fun transform(coord: Coordinate) : Coordinate {
+    fun transformFormModelCoord(coord: Coordinate) : Coordinate {
+        val y = (coord.y - center.y) / windowHeightMeters
+        val x = (coord.x - center.x) / (windowHeightMeters / aspect)
+        return Coordinate(x, y)
+    }
+
+    fun transformFromLatLon(coord: Coordinate) : Coordinate {
         val point = geometryFactory.createPoint(coord)
         val transformedPoint = toModelCRS(point) as Point
         val y = (transformedPoint.y - center.y) / windowHeightMeters

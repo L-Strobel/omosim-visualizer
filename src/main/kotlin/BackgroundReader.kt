@@ -37,66 +37,91 @@ class BackgroundReader {
             reader.setSink(geomFilter)
             reader.run()
 
+            // Draw order of background
+            processor.mapObjects.sortBy { it.type.zorder }
+
+
+            fun colorMap(type: MapObjectType) : Color {
+                return when (type) {
+                    MapObjectType.BUILDING -> Color.BLACK
+                    MapObjectType.HWY_MOTORWAY -> Color(0.4f, 0.4f, 0.4f)
+                    MapObjectType.HWY_PRIMARY -> Color(0.4f, 0.4f, 0.4f)
+                    MapObjectType.HWY_TRUNK -> Color(0.4f, 0.4f, 0.4f)
+                    MapObjectType.HWY_SECONDARY -> Color(0.4f, 0.4f, 0.4f)
+                    MapObjectType.HWY_TERTIARY -> Color(0.4f, 0.4f, 0.4f)
+                    MapObjectType.HWY_GENERAL -> Color(0.4f, 0.4f, 0.4f)
+                    MapObjectType.FOREST -> Color(0.13f, 0.13f, 0.13f)
+                    MapObjectType.WATER -> Color(0.1f, 0.1f, 0.15f)
+                    else -> Color.RED // Debug color
+                }
+            }
+            fun widthMap(type: MapObjectType) : Double {
+                return when(type) {
+                    MapObjectType.HWY_MOTORWAY -> 20.0
+                    MapObjectType.HWY_SECONDARY -> 5.0
+                    MapObjectType.HWY_PRIMARY -> 5.0
+                    MapObjectType.HWY_TRUNK -> 5.0
+                    MapObjectType.HWY_TERTIARY -> 3.0
+                    MapObjectType.WATER -> 10.0
+                    else -> 1.0
+                }
+            }
+
             // Triangulate OSM data
-            val colorMap = mapOf(
-                MapObjectType.BUILDING to Color.BLACK,
-                MapObjectType.HIGHWAY  to Color(0.4f, 0.4f, 0.4f),
-                MapObjectType.FOREST   to Color(0.13f, 0.13f, 0.13f),
-                MapObjectType.WATER    to Color(0.1f, 0.1f, 0.15f)
-            )
             val colors = mutableListOf<Color>()
             val polygons = mutableListOf<Polygon>()
             for (mapObject in processor.mapObjects) {
-                if (mapObject.geometry is org.locationtech.jts.geom.MultiPolygon){
-                    for (i in 0 until mapObject.geometry.numGeometries) {
-                        val poly = mapObject.geometry.getGeometryN(i)
-                        val geom = DouglasPeuckerSimplifier.simplify(poly, 0.000001)
-                        if (geom !is org.locationtech.jts.geom.Polygon) { continue }
-                        val extPoints = geom.exteriorRing.coordinates.dropLast(1).map { coord ->
-                            val coordMeter = transformer.transform(coord)
-                            val x = coordMeter.x
-                            val y = coordMeter.y
-                            PolygonPoint(x, y)
+                var geometry = transformer.toModelCRS(mapObject.geometry)
+                geometry = DouglasPeuckerSimplifier.simplify(geometry, 1.0)
+
+                when (geometry) {
+                    is org.locationtech.jts.geom.MultiPolygon -> {
+                        for (i in 0 until geometry.numGeometries) {
+                            val mapPoly = makeMapPolygon(
+                                geometry.getGeometryN(i) as org.locationtech.jts.geom.Polygon,
+                                transformer
+                            )
+                            if (mapPoly != null) {
+                                polygons.add(mapPoly)
+                                colors.add(colorMap(mapObject.type))
+                            }
                         }
-                        if (extPoints.size <= 2) { continue }
-                        val polygon = Polygon(extPoints)
-                        polygons.add(polygon)
-                        colors.add(colorMap[mapObject.type]!!)
                     }
-                } else if ((mapObject.geometry is org.locationtech.jts.geom.Polygon) && mapObject.geometry.exteriorRing.isSimple){
-                    val geom = DouglasPeuckerSimplifier.simplify(mapObject.geometry, 0.000001)
-                    if (geom !is org.locationtech.jts.geom.Polygon) { continue }
-                    val extPoints = geom.exteriorRing.coordinates.dropLast(1).map { coord ->
-                        val coordMeter = transformer.transform(coord)
-                        val x = coordMeter.x
-                        val y = coordMeter.y
-                        PolygonPoint(x, y)
+                    is org.locationtech.jts.geom.Polygon -> {
+                        val mapPoly = makeMapPolygon(geometry, transformer)
+                        if (mapPoly != null) {
+                            polygons.add(mapPoly)
+                            colors.add(colorMap(mapObject.type))
+                        }
                     }
-                    if (extPoints.size <= 2) { continue }
-                    val polygon = Polygon(extPoints)
-                    polygons.add(polygon)
-                    colors.add(colorMap[mapObject.type]!!)
-                } else {
-                    if ((mapObject.geometry is org.locationtech.jts.geom.LineString)){
-                        val geom = mapObject.geometry.buffer(0.00002) as org.locationtech.jts.geom.Polygon
-                        val poly = DouglasPeuckerSimplifier.simplify(geom, 0.000001)
+                    is org.locationtech.jts.geom.LineString -> {
+                        val width = widthMap(mapObject.type)
+                        // TODO Create triangles directly
+                        val geom = geometry.buffer(width) as org.locationtech.jts.geom.Polygon
+                        val poly = DouglasPeuckerSimplifier.simplify(geom, 0.25)
                         if (poly !is org.locationtech.jts.geom.Polygon) { continue }
-                        val extPoints = poly.exteriorRing.coordinates.dropLast(1).map { coord ->
-                            val coordMeter = transformer.transform(coord)
-                            val x = coordMeter.x
-                            val y = coordMeter.y
-                            PolygonPoint(x, y)
+                        val mapPoly = makeMapPolygon(poly, transformer)
+                        if (mapPoly != null) {
+                            polygons.add(mapPoly)
+                            colors.add(colorMap(mapObject.type))
                         }
-                        if (extPoints.size <= 2) { continue }
-                        val polygon = Polygon(extPoints)
-                        polygons.add(polygon)
-                        colors.add(colorMap[mapObject.type]!!)
                     }
                 }
             }
             val mesh = Mesh.from2DPolygons(polygons, colors)
             println("OSM data read!")
             return mesh
+        }
+
+        private fun makeMapPolygon(polygon: org.locationtech.jts.geom.Polygon, transformer: CoordTransformer) : Polygon? {
+            val extPoints = polygon.exteriorRing.coordinates.dropLast(1).map { coord ->
+                val coordMeter = transformer.transformFormModelCoord(coord)
+                val x = coordMeter.x
+                val y = coordMeter.y
+                PolygonPoint(x, y)
+            }
+            if (extPoints.size <= 2) { return null }
+            return Polygon(extPoints)
         }
     }
 }

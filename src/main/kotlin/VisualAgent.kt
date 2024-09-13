@@ -80,7 +80,7 @@ class VisualAgent (
                     when (leg) {
                         is OutputActivity -> {
                             val time = leg.stayTimeMinute ?: max(0.0,  24 * 60 - clockTime)
-                            val coordMeter = transformer.transform(Coordinate(leg.lat, leg.lon))
+                            val coordMeter = transformer.transformFromLatLon(Coordinate(leg.lat, leg.lon))
 
                             trace.add(
                                 TracePoint(
@@ -121,7 +121,7 @@ class VisualAgent (
                                 runningDistance += segmentDistance
 
                                 val pntTime = time * runningDistance / totalDistance
-                                val coordMeter = transformer.transform(coord)
+                                val coordMeter = transformer.transformFromLatLon(coord)
 
                                 trace.add(
                                     TracePoint(

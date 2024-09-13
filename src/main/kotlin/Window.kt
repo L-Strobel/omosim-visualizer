@@ -3,10 +3,8 @@ package de.uniwuerzburg.omodvisualizer
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
-import org.lwjgl.glfw.GLFWKeyCallbackI
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.NULL
-import java.awt.SystemColor.window
 import java.nio.IntBuffer
 
 
@@ -23,7 +21,7 @@ class Window (title: String) {
         glfwDefaultWindowHints()
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE)
-        glfwWindowHint(GLFW_SAMPLES, 4)
+        glfwWindowHint(GLFW_SAMPLES, 8)
 
         // Get the resolution of the primary monitor
         val vidMode = glfwGetVideoMode(glfwGetPrimaryMonitor())!!

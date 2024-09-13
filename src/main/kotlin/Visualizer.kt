@@ -8,7 +8,6 @@ import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.NULL
 import java.awt.Color
 import java.io.File
-import java.nio.IntBuffer
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.time.TimeSource
@@ -46,7 +45,7 @@ class Visualizer {
         window = Window("")
         aspect = window.getAspect()
 
-        val (agents, t, b) = VisualAgent.fromFile(File(("debugIn/basicTest.json")), 7000, aspect)
+        val (agents, t, b) = VisualAgent.fromFile(File(("debugIn/wrzb.json")), 7000, aspect)
         vAgents = agents
         transformer = t
         bBox = b
@@ -95,8 +94,8 @@ class Visualizer {
         glfwSetCursorPosCallback(window.ref) { w: Long , xPos: Double, yPos: Double ->
             if (mouseDrag) {
                 val (width, height) = window.getCurrentWindowSize()
-                up += ((yPos - mouseDragY) / height * 2).toFloat()
-                right -= ((xPos - mouseDragX) / width  * 2).toFloat()
+                up += ((yPos - mouseDragY) / height * 2).toFloat() * zoom
+                right -= ((xPos - mouseDragX) / width  * 2).toFloat() * zoom
 
                 mouseDragX = xPos
                 mouseDragY = yPos

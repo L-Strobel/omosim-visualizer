@@ -9,7 +9,6 @@ import org.lwjgl.system.MemoryUtil.NULL
 import java.awt.Color
 import java.io.File
 import java.nio.IntBuffer
-import javax.swing.Spring.height
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.time.TimeSource
@@ -32,6 +31,9 @@ class Visualizer {
     private var up = 0f
     private var right = 0f
     private var pause = 1f
+    private var mouseDrag = false
+    private var mouseDragX = 0.0
+    private var mouseDragY = 0.0
 
     fun run() {
         init()
@@ -44,7 +46,7 @@ class Visualizer {
         window = Window("")
         aspect = window.getAspect()
 
-        val (agents, t, b) = VisualAgent.fromFile(File(("debugIn/wrzb.json")), 7000, aspect)
+        val (agents, t, b) = VisualAgent.fromFile(File(("debugIn/basicTest.json")), 7000, aspect)
         vAgents = agents
         transformer = t
         bBox = b
@@ -75,6 +77,31 @@ class Visualizer {
         bgRenderer = Renderer(bgMesh, 1)
 
         // Control
+        glfwSetMouseButtonCallback(window.ref) { w: Long, button: Int, action: Int, mods: Int ->
+            if (button == GLFW_MOUSE_BUTTON_LEFT  && action == GLFW_PRESS) {
+                stackPush().use { stack ->
+                    val xPos = stack.mallocDouble(1)
+                    val yPos = stack.mallocDouble(1)
+                    glfwGetCursorPos(w, xPos, yPos)
+
+                    mouseDragX = xPos[0]
+                    mouseDragY = yPos[0]
+                }
+                mouseDrag = true
+            } else if (button == GLFW_MOUSE_BUTTON_LEFT  && action == GLFW_RELEASE) {
+                mouseDrag = false
+            }
+        }
+        glfwSetCursorPosCallback(window.ref) { w: Long , xPos: Double, yPos: Double ->
+            if (mouseDrag) {
+                val (width, height) = window.getCurrentWindowSize()
+                up += ((yPos - mouseDragY) / height * 2).toFloat()
+                right -= ((xPos - mouseDragX) / width  * 2).toFloat()
+
+                mouseDragX = xPos
+                mouseDragY = yPos
+            }
+        }
         glfwSetKeyCallback(window.ref) { window: Long, key: Int, scancode: Int, action: Int, mods: Int ->
             val moveAction = (action == GLFW_REPEAT ) || (action == GLFW_PRESS )
             val moveStrength = 0.02f
@@ -92,19 +119,32 @@ class Visualizer {
                 speed /= 2
             } else if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)  {
                 pause = if (pause == 1f) 0f else 1f
-            }else if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)  {
-                stackPush().use { stack ->
-                    val pWidth: IntBuffer = stack.mallocInt(1) // int*
-                    val pHeight: IntBuffer = stack.mallocInt(1) // int*
-                    glfwGetWindowSize(window, pWidth, pHeight)
+            } else if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)  {
+                val monitor = glfwGetWindowMonitor(window)
+                if (monitor != NULL) {
                     val vidMode = glfwGetVideoMode(glfwGetPrimaryMonitor())!!
                     glfwSetWindowMonitor(
                         window,
                         NULL,
-                        (vidMode.width() - pWidth[0]) / 2,
-                        (vidMode.height() - pHeight[0]) / 2,
+                        vidMode.width() / 8,
+                        vidMode.height() / 8,
                         vidMode.width() * 3 / 4,
                         vidMode.height() * 3 / 4,
+                        vidMode.refreshRate()
+                    )
+                }
+            } else if (key == GLFW_KEY_F11 && action == GLFW_RELEASE) {
+                val monitor = glfwGetWindowMonitor(window)
+                if (monitor == NULL) {
+                    val fsMonitor =glfwGetPrimaryMonitor()
+                    val vidMode = glfwGetVideoMode(fsMonitor)!!
+                    glfwSetWindowMonitor(
+                        window,
+                        fsMonitor,
+                        0,
+                        0,
+                        vidMode.width(),
+                        vidMode.height(),
                         vidMode.refreshRate()
                     )
                 }

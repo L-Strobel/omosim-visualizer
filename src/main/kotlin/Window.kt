@@ -22,7 +22,7 @@ class Window (title: String) {
         // Configure GLFW
         glfwDefaultWindowHints()
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE)
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE)
         glfwWindowHint(GLFW_SAMPLES, 4)
 
         // Get the resolution of the primary monitor
@@ -31,21 +31,6 @@ class Window (title: String) {
         // Create the window
         ref = glfwCreateWindow(vidMode.width(), vidMode.height(), title, glfwGetPrimaryMonitor(), NULL)
         if (ref == NULL) throw RuntimeException("Failed to create the GLFW window")
-
-        stackPush().use { stack ->
-            val pWidth: IntBuffer = stack.mallocInt(1) // int*
-            val pHeight: IntBuffer = stack.mallocInt(1) // int*
-
-            // Get the window size passed to glfwCreateWindow
-            glfwGetWindowSize(ref, pWidth, pHeight)
-
-            // Center the window
-            glfwSetWindowPos(
-                ref,
-                (vidMode.width() - pWidth[0]) / 2,
-                (vidMode.height() - pHeight[0]) / 2
-            )
-        }
 
         // Make the OpenGL context current
         glfwMakeContextCurrent(ref)

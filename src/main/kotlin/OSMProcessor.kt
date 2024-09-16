@@ -17,7 +17,7 @@ import org.openstreetmap.osmosis.core.task.v0_6.Sink
  */
 enum class MapObjectType(val zorder: Int) {
     BUILDING(zorder=10), HWY_MOTORWAY(zorder=7), HWY_PRIMARY(zorder=6), HWY_TRUNK(zorder=6), HWY_SECONDARY(zorder=5),
-    HWY_TERTIARY(zorder=4), HWY_GENERAL(zorder=3), FOREST(zorder=2), WATER(zorder=0)
+    HWY_TERTIARY(zorder=4), HWY_GENERAL(zorder=3), FOREST(zorder=2), WATER(zorder=0), AREA(zorder=0)
 }
 
 /**
@@ -29,7 +29,8 @@ enum class MapObjectType(val zorder: Int) {
 class MapObject (
     val id: Long,
     val type: MapObjectType,
-    val geometry: Geometry
+    val geometry: Geometry,
+    val areaTag: Boolean
 )
 
 /**
@@ -282,6 +283,12 @@ class OSMProcessor(idTrackerType: IdTrackerType,
                         else -> continue
                     }
                 }
+                "area" -> {
+                    when(tag.value) {
+                        "yes" -> MapObjectType.AREA
+                        else -> continue
+                    }
+                }
                 else -> continue
             }
             rslt.add(type)
@@ -335,7 +342,8 @@ class OSMProcessor(idTrackerType: IdTrackerType,
             val geom = getGeom(entity)
             if (!geom.isEmpty) {
                 for (type in types) {
-                    mapObjects.add(MapObject(entity.id, type, geom))
+                    if (type == MapObjectType.AREA) { continue }
+                    mapObjects.add(MapObject(entity.id, type, geom, false))
                 }
             }
         }
@@ -343,10 +351,12 @@ class OSMProcessor(idTrackerType: IdTrackerType,
         searchForRelevant(wayReader, relevantWays) { container ->
             val entity = container.entity
             val types = determineTypes(entity)
+            val areaTag = types.contains(MapObjectType.AREA)
             val geom = getGeom(entity, nodeReader)
             if (!geom.isEmpty) {
                 for (type in types) {
-                    mapObjects.add(MapObject(entity.id, type, geom))
+                    if (type == MapObjectType.AREA) { continue }
+                    mapObjects.add(MapObject(entity.id, type, geom, areaTag))
                 }
             }
         }
@@ -354,10 +364,12 @@ class OSMProcessor(idTrackerType: IdTrackerType,
         searchForRelevant(relationReader, relevantRelations) { container ->
             val entity = container.entity
             val types = determineTypes(entity)
+            val areaTag = types.contains(MapObjectType.AREA)
             val geom = getGeom(entity, wayReader, nodeReader)
             if (!geom.isEmpty) {
                 for (type in types) {
-                    mapObjects.add(MapObject(entity.id, type, geom))
+                    if (type == MapObjectType.AREA) { continue }
+                    mapObjects.add(MapObject(entity.id, type, geom, areaTag))
                 }
             }
         }

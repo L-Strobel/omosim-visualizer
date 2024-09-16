@@ -1,10 +1,12 @@
 package de.uniwuerzburg.omodvisualizer
 
 import crosby.binary.osmosis.OsmosisReader
+import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.GeometryFactory
 import org.locationtech.jts.simplify.DouglasPeuckerSimplifier
 import org.openstreetmap.osmosis.areafilter.v0_6.BoundingBoxFilter
 import org.openstreetmap.osmosis.core.filter.common.IdTrackerType
+import org.poly2tri.Poly2Tri.triangulate
 import org.poly2tri.geometry.polygon.Polygon
 import org.poly2tri.geometry.polygon.PolygonPoint
 import java.awt.Color
@@ -52,6 +54,7 @@ class BackgroundReader {
                     MapObjectType.HWY_GENERAL -> Color(0.4f, 0.4f, 0.4f)
                     MapObjectType.FOREST -> Color(0.13f, 0.13f, 0.13f)
                     MapObjectType.WATER -> Color(0.1f, 0.1f, 0.15f)
+                    else -> Color.RED // Debug
                 }
             }
             fun widthMap(type: MapObjectType) : Double {
@@ -71,6 +74,16 @@ class BackgroundReader {
             val polygons = mutableListOf<Polygon>()
             for (mapObject in processor.mapObjects) {
                 var geometry = transformer.toModelCRS(mapObject.geometry)
+
+                // Check if street is meant to be an area
+                if (
+                    mapObject.type.name.startsWith("HWY") &&
+                    !mapObject.areaTag &&
+                    geometry is org.locationtech.jts.geom.Polygon
+                ) {
+                    geometry = geometry.exteriorRing as org.locationtech.jts.geom.LineString
+                }
+
                 geometry = DouglasPeuckerSimplifier.simplify(geometry, 1.0)
 
                 when (geometry) {
@@ -95,7 +108,6 @@ class BackgroundReader {
                     }
                     is org.locationtech.jts.geom.LineString -> {
                         val width = widthMap(mapObject.type)
-                        // TODO Create triangles directly
                         val geom = geometry.buffer(width) as org.locationtech.jts.geom.Polygon
                         val poly = DouglasPeuckerSimplifier.simplify(geom, 0.25)
                         if (poly !is org.locationtech.jts.geom.Polygon) { continue }
@@ -120,7 +132,19 @@ class BackgroundReader {
                 PolygonPoint(x, y)
             }
             if (extPoints.size <= 2) { return null }
-            return Polygon(extPoints)
+            val mapPolygon = Polygon(extPoints)
+
+            for (i in 0 until polygon.numInteriorRing) {
+                val innerPoints = polygon.getInteriorRingN(i).coordinates.dropLast(1).map { coord ->
+                    val coordMeter = transformer.transformFormModelCoord(coord)
+                    val x = coordMeter.x
+                    val y = coordMeter.y
+                    PolygonPoint(x, y)
+                }
+                if (innerPoints.size <= 2) { continue }
+                mapPolygon.addHole( Polygon(innerPoints) )
+            }
+            return mapPolygon
         }
     }
 }

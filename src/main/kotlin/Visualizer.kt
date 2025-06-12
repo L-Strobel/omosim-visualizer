@@ -3,7 +3,7 @@ package de.uniwuerzburg.omodvisualizer
 import org.joml.Matrix4f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL20.*
+import org.lwjgl.opengl.GL30.*
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.NULL
 import java.awt.Color
@@ -33,6 +33,7 @@ class Visualizer {
     private var mouseDrag = false
     private var mouseDragX = 0.0
     private var mouseDragY = 0.0
+    private lateinit var textureRenderer: Renderer
 
     fun run() {
         init()
@@ -45,7 +46,7 @@ class Visualizer {
         window = Window("")
         aspect = window.getAspect()
 
-        val (agents, t, b) = VisualAgent.fromFile(File(("debugIn/wrzb.json")), 7000, aspect)
+        val (agents, t, b) = VisualAgent.fromFile(File(("debugIn/basicTest.json")), 7000, aspect)
         vAgents = agents
         transformer = t
         bBox = b
@@ -66,14 +67,15 @@ class Visualizer {
 
         // Read background data
         val bgMesh = BackgroundReader.readOSM(
-            File("C:/Users/les29rq/Nextcloud/Projekte/08_data/OSM/bayern-latest.osm.pbf"),
+            File("C:/Users/les29rq/open_data/OSM/bayern-latest.osm.pbf"),
             bBox[0].toDouble() - 0.05,
             bBox[1].toDouble() + 0.05,
-            bBox[2].toDouble() -0.1,
+            bBox[2].toDouble() - 0.1,
             bBox[3].toDouble() + 0.1,
             transformer
         )
         bgRenderer = Renderer(bgMesh, 1)
+        textureRenderer = Renderer(Mesh.textureCanvas(), 1, "debugIn/TestTexture.png")
 
         // Control
         glfwSetMouseButtonCallback(window.ref) { w: Long, button: Int, action: Int, mods: Int ->
@@ -170,6 +172,7 @@ class Visualizer {
     }
 
     private fun close() {
+        textureRenderer.close()
         bgRenderer.close()
         agentRenderer.close()
         window.close()
@@ -192,6 +195,7 @@ class Visualizer {
 
         // Plot background
         bgRenderer.render(projection, Matrix4f())
+        textureRenderer.renderBasic(projection, Matrix4f().scale(0.1f * aspect, 0.1f, 1f))
 
         val model = Matrix4f()
             .scale(0.002f * aspect, 0.002f, 1f)

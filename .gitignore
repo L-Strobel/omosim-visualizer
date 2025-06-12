@@ -46,3 +46,4 @@ bin/
 .kotlin/
 debugIn/
 debugJar/
+testTextureCreator/

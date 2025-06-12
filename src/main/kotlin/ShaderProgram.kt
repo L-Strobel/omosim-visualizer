@@ -2,7 +2,6 @@ package de.uniwuerzburg.omodvisualizer
 
 import org.joml.Matrix3x2f
 import org.joml.Matrix4f
-import org.joml.Vector2i
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.system.MemoryStack.stackPush
 
@@ -70,6 +69,11 @@ class ShaderProgram(shaders: List<String>) {
 
     fun use() {
         glUseProgram (ref)
+    }
+
+    fun setTextureUniform() {
+        val uniTex = glGetUniformLocation(ref, "texImage")
+        glUniform1i(uniTex, 0)
     }
 
     /**

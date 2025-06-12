@@ -10,7 +10,6 @@ import org.poly2tri.Poly2Tri
 import org.poly2tri.geometry.polygon.Polygon
 import java.awt.Color
 import java.nio.FloatBuffer
-import kotlin.collections.ArrayList
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.tan
@@ -80,6 +79,22 @@ class Mesh(
         glBindBuffer(GL_ARRAY_BUFFER, 0)
     }
 
+    fun specifyAttributeArrayWTexture(shaderProgram: ShaderProgram) {
+        glBindBuffer(GL_ARRAY_BUFFER, vbo)
+        val posAttrib = glGetAttribLocation(shaderProgram.ref, "position")
+        glEnableVertexAttribArray(posAttrib)
+        glVertexAttribPointer(posAttrib, 2, GL_FLOAT, false, 7 * 4, 0)
+
+        val colAttrib = glGetAttribLocation(shaderProgram.ref, "color")
+        glEnableVertexAttribArray(colAttrib)
+        glVertexAttribPointer(colAttrib, 3, GL_FLOAT, false, 7 * 4, 2 * 4)
+
+        val texAttrib = glGetAttribLocation(shaderProgram.ref, "texcoord")
+        glEnableVertexAttribArray(texAttrib)
+        glVertexAttribPointer(texAttrib, 2, GL_FLOAT, false, 7 * 4, 5 * 4)
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+    }
+
     companion object {
         private fun unpackColor(color: Color): List<Float> {
             val red = color.red / 255f
@@ -136,6 +151,33 @@ class Mesh(
             for (position in positions) {
                 vertices.addAll(position)
                 vertices.addAll(colorFloats)
+            }
+            return fromVertices(vertices.toFloatArray())
+        }
+
+        fun textureCanvas(): Mesh {
+            val colorFloats = unpackColor(Color.WHITE)
+            val positions = listOf(
+                listOf(-1f, -1f),
+                listOf(-1f, 1f),
+                listOf(1f, 1f),
+                listOf(1f, 1f),
+                listOf(1f, -1f),
+                listOf(-1f, -1f),
+            )
+            val texPositions = listOf(
+                listOf(0f, 0f),
+                listOf(0f, 1f),
+                listOf(1f, 1f),
+                listOf(1f, 1f),
+                listOf(1f, 0f),
+                listOf(0f, 0f),
+            )
+            val vertices = ArrayList<Float>(positions.size * (2 + 3 + 2))
+            for ((position, texPosition) in positions.zip(texPositions)) {
+                vertices.addAll(position)
+                vertices.addAll(colorFloats)
+                vertices.addAll(texPosition)
             }
             return fromVertices(vertices.toFloatArray())
         }

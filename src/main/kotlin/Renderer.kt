@@ -1,18 +1,32 @@
 package de.uniwuerzburg.omodvisualizer
 
 import org.joml.*
-import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.glBindVertexArray
 import org.lwjgl.opengl.GL31.glDrawArraysInstanced
 
-class Renderer(private val mesh: Mesh, instances: Int) {
-    private val shaderProgramme = ShaderProgram(listOf("/2D.vert", "/monochrome.frag"))
+class Renderer(
+    private val mesh: Mesh,
+    instances: Int,
+    private val textureImgFN: String? = null
+) {
+    private val shaderProgramme = if (textureImgFN == null ) {
+        ShaderProgram(listOf("/2D.vert", "/monochrome.frag"))
+    } else {
+        ShaderProgram(listOf("/2DTexture.vert", "/texture.frag"))
+    }
 
     init {
         bindVAO()
         shaderProgramme.link()
-        mesh.specifyAttributeArray(shaderProgramme)
+        if (textureImgFN == null) {
+            mesh.specifyAttributeArray(shaderProgramme)
+        } else {
+            mesh.specifyAttributeArrayWTexture(shaderProgramme)
+            Texture.loadTexture(textureImgFN)
+            shaderProgramme.setTextureUniform()
+        }
+
         if (instances > 1) {
             mesh.enableInstancing(instances, shaderProgramme)
         }
@@ -21,6 +35,7 @@ class Renderer(private val mesh: Mesh, instances: Int) {
     }
 
     fun render(projection: Matrix4f, model: Matrix4f) {
+        shaderProgramme.use() // TODO Bind texture here? Maybe if I have more than one
         bindVAO()
         shaderProgramme.addUniform(projection, "projection")
         shaderProgramme.addUniform(model, "model")
@@ -31,6 +46,7 @@ class Renderer(private val mesh: Mesh, instances: Int) {
     }
 
     fun renderBasic(projection: Matrix4f, model: Matrix4f) {
+        shaderProgramme.use()
         bindVAO()
         shaderProgramme.addUniform(projection, "projection")
         shaderProgramme.addUniform(model, "model")
@@ -39,6 +55,7 @@ class Renderer(private val mesh: Mesh, instances: Int) {
     }
 
     fun renderInstanced(projection: Matrix4f, model: Matrix4f, positions: List<Pair<Float, Float>>) {
+        shaderProgramme.use()
         bindVAO()
         shaderProgramme.addUniform(projection, "projection")
         shaderProgramme.addUniform(model, "model")

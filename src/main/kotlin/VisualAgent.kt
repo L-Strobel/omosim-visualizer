@@ -44,6 +44,7 @@ class VisualAgent (
         fun fromFile(file: File, windowHeightMeters: Int, aspect: Float) :
                 Triple<List<VisualAgent>, CoordTransformer, Array<Float>>
         {
+            println("Start reading agent data...")
             val omodData = Json.decodeFromStream<List<OutputEntry>>(file.inputStream())
 
             // Scale coordinates to display coordinates
@@ -62,6 +63,7 @@ class VisualAgent (
             val transformer = CoordTransformer(windowHeightMeters, aspect, centerLatLon)
 
             val vAgents = omodData.map{ getVAgent(it, transformer) }
+            println("Agent data read!")
             return Triple(vAgents, transformer, arrayOf(minLat, maxLat, minLon, maxLon))
         }
 

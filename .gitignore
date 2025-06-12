@@ -47,3 +47,4 @@ bin/
 debugIn/
 debugJar/
 testTextureCreator/
+meshCache/

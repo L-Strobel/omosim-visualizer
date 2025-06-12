@@ -40,7 +40,7 @@ class Renderer(
         shaderProgramme.addUniform(projection, "projection")
         shaderProgramme.addUniform(model, "model")
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.vboIdx!!)
-        glDrawElements(GL_TRIANGLES, mesh.indices.size, GL_UNSIGNED_INT,0)
+        glDrawElements(GL_TRIANGLES, mesh.indexSize, GL_UNSIGNED_INT,0)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
         unbindVAO()
     }

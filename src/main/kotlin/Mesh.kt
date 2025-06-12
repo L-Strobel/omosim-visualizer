@@ -9,18 +9,20 @@ import org.lwjgl.system.MemoryUtil
 import org.poly2tri.Poly2Tri
 import org.poly2tri.geometry.polygon.Polygon
 import java.awt.Color
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.nio.FloatBuffer
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.tan
 
 class Mesh(
-    val vbo: Int,
+    var vbo: Int,
     val vao: Int,
     val size: Int,
     val drawMode: Int,
     val vboIdx: Int? = null,
-    val indices: IntArray = intArrayOf()
+    val indexSize: Int = 0
 ) {
     private var instVBO: Int = 0
     private var instFB: FloatBuffer? = null
@@ -288,7 +290,80 @@ class Mesh(
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
             }
             glBindVertexArray(0)
-            return Mesh(vbo!!, vao, vertices.size, drawMode, vboIdx, indices)
+            return Mesh(vbo!!, vao, vertices.size, drawMode, vboIdx, indices.size)
         }
+
+        fun load(fn: String) : Mesh {
+            val drawMode: Int = GL_TRIANGLES
+            val vao: Int = glGenVertexArrays()
+            glBindVertexArray(vao)
+
+            // Vertices
+            val fisv = FileInputStream("${fn}_vertices")
+            val vBytes = fisv.available()
+
+            val vBuffer = BufferUtils.createByteBuffer(vBytes)
+            val vChannel = fisv.channel
+            vChannel.read(vBuffer)
+            vBuffer.rewind()
+
+            val vbo = glGenBuffers()
+            glBindBuffer(GL_ARRAY_BUFFER, vbo)
+            glBufferData(GL_ARRAY_BUFFER, vBuffer, GL_STATIC_DRAW)
+            glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+            // Index
+            val fisi = FileInputStream("${fn}_indices")
+            val iBytes = fisi.available()
+
+            val iBuffer = BufferUtils.createByteBuffer(vBytes)
+            val iChannel = fisi.channel
+            iChannel.read(iBuffer)
+            iBuffer.rewind()
+
+            val vboIdx = glGenBuffers()
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboIdx)
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, iBuffer, GL_STATIC_DRAW)
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+
+            glBindVertexArray(0)
+            return Mesh(vbo, vao, (vBytes / 4), drawMode, vboIdx, iBytes / 4)
+        }
+    }
+
+    fun save(fn: String) {
+        require(vboIdx != null)
+
+        stackPush().use { _ ->
+            val buffer = BufferUtils.createByteBuffer(this.size * 4)
+            glBindBuffer(GL_ARRAY_BUFFER, vbo)
+            glGetBufferSubData(GL_ARRAY_BUFFER, 0, buffer)
+            glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+            println("First saved")
+            println(buffer.asFloatBuffer().get(0))
+
+            val fos = FileOutputStream("${fn}_vertices")
+            val channel = fos.channel
+
+            channel.write(buffer)
+
+            fos.close()
+        }
+
+        stackPush().use { _ ->
+            val buffer = BufferUtils.createByteBuffer(this.indexSize * 4)
+            glBindBuffer(GL_ARRAY_BUFFER, vboIdx)
+            glGetBufferSubData(GL_ARRAY_BUFFER, 0, buffer)
+            glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+            val fos = FileOutputStream("${fn}_indices")
+            val channel = fos.channel
+
+            channel.write(buffer)
+
+            fos.close()
+        }
+
     }
 }

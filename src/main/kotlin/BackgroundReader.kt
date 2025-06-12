@@ -12,15 +12,38 @@ import org.poly2tri.geometry.polygon.PolygonPoint
 import java.awt.Color
 import java.io.File
 import java.io.FileInputStream
+import kotlin.time.measureTimedValue
 
 
 class BackgroundReader {
     companion object {
-        fun readOSM(
+        fun getOSM(
+            osmFile: File,
+            minLat: Double, maxLat: Double, minLon: Double, maxLon: Double,
+            transformer: CoordTransformer
+        ): Mesh {
+            val cacheFN = String.format("meshCache/bgVertices_%.8f_%.8f_%.8f_%.8f", minLat, maxLat, minLon, maxLon)
+            val vCacheFile = File("${cacheFN}_vertices")
+            val iCacheFile = File("${cacheFN}_indices")
+
+            return if (
+                (vCacheFile.exists() and !vCacheFile.isDirectory) and
+                (iCacheFile.exists() and !iCacheFile.isDirectory)
+            ) {
+                Mesh.load(cacheFN)
+            } else {
+                val mesh = readOSM(osmFile, minLat, maxLat, minLon, maxLon, transformer)
+                mesh.save(cacheFN)
+                mesh
+            }
+        }
+
+        private fun readOSM(
             osmFile: File,
             minLat: Double, maxLat: Double, minLon: Double, maxLon: Double,
             transformer: CoordTransformer
         ) : Mesh {
+            println("Start reading OSM data...")
             val geometryFactory = GeometryFactory()
             val reader = OsmosisReader( FileInputStream(osmFile) )
             val processor = OSMProcessor(IdTrackerType.Dynamic, geometryFactory)

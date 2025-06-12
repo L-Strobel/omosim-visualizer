@@ -66,7 +66,7 @@ class Visualizer {
         agentRenderer = Renderer(mesh, vAgents.size)
 
         // Read background data
-        val bgMesh = BackgroundReader.readOSM(
+        val bgMesh = BackgroundReader.getOSM(
             File("C:/Users/les29rq/open_data/OSM/bayern-latest.osm.pbf"),
             bBox[0].toDouble() - 0.05,
             bBox[1].toDouble() + 0.05,

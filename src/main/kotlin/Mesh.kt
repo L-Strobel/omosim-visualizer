@@ -73,11 +73,11 @@ class Mesh(
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
         val posAttrib = glGetAttribLocation(shaderProgram.ref, "position")
         glEnableVertexAttribArray(posAttrib)
-        glVertexAttribPointer(posAttrib, 2, GL_FLOAT, false, 5 * 4, 0)
+        glVertexAttribPointer(posAttrib, 2, GL_FLOAT, false, 6 * 4, 0)
 
         val colAttrib = glGetAttribLocation(shaderProgram.ref, "color")
         glEnableVertexAttribArray(colAttrib)
-        glVertexAttribPointer(colAttrib, 3, GL_FLOAT, false, 5 * 4, 2 * 4)
+        glVertexAttribPointer(colAttrib, 4, GL_FLOAT, false, 6 * 4, 2 * 4)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
     }
 
@@ -85,15 +85,15 @@ class Mesh(
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
         val posAttrib = glGetAttribLocation(shaderProgram.ref, "position")
         glEnableVertexAttribArray(posAttrib)
-        glVertexAttribPointer(posAttrib, 2, GL_FLOAT, false, 7 * 4, 0)
+        glVertexAttribPointer(posAttrib, 2, GL_FLOAT, false, 8 * 4, 0)
 
         val colAttrib = glGetAttribLocation(shaderProgram.ref, "color")
         glEnableVertexAttribArray(colAttrib)
-        glVertexAttribPointer(colAttrib, 3, GL_FLOAT, false, 7 * 4, 2 * 4)
+        glVertexAttribPointer(colAttrib, 4, GL_FLOAT, false, 8 * 4, 2 * 4)
 
         val texAttrib = glGetAttribLocation(shaderProgram.ref, "texcoord")
         glEnableVertexAttribArray(texAttrib)
-        glVertexAttribPointer(texAttrib, 2, GL_FLOAT, false, 7 * 4, 5 * 4)
+        glVertexAttribPointer(texAttrib, 2, GL_FLOAT, false, 8 * 4, 6 * 4)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
     }
 
@@ -102,7 +102,8 @@ class Mesh(
             val red = color.red / 255f
             val green = color.green / 255f
             val blue = color.blue / 255f
-            return listOf(red, green, blue)
+            val alpha = color.alpha / 255f
+            return listOf(red, green, blue, alpha)
         }
 
         fun basicCircle(nSegments: Int, color: Color): Mesh {

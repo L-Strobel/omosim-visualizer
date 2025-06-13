@@ -1,11 +1,11 @@
 #version 410
 
 in vec2 position;
-in vec3 color;
+in vec4 color;
 in vec2 offset;
 in vec2 texcoord;
 
-out vec3 vertexColor;
+out vec4 vertexColor;
 out vec4 gl_Position;
 out vec2 textureCoord;
 

@@ -29,10 +29,14 @@ import kotlin.use
 
 class Glyph(val width: Int, val height: Int, val x: Int, val y: Int)
 
-class Font {
-    private val glyphs: MutableMap<Char, Glyph> = mutableMapOf()
-    private val fontHeight: Int
+class Font(
+    val window: Window
+) {
+    val glyphs: MutableMap<Char, Glyph> = mutableMapOf()
+    val fontHeight: Int
     val texture: Int
+    val texWidth: Int
+    val texHeight: Int
     /*val vao: Int
     val vbo: Int
     val shaderProgramme = ShaderProgram(listOf("/2DTexture.vert", "/texture.frag"))
@@ -71,7 +75,7 @@ class Font {
 
         glBindVertexArray(0)
         */
-        val font = Font(MONOSPACED, PLAIN, 16)
+        val font = Font(MONOSPACED, PLAIN, 48)
 
         var imageWidth = 0
         var imageHeight = 0
@@ -81,7 +85,7 @@ class Font {
                 continue
             }
             val c = i.toChar()
-            val ch: BufferedImage = createCharImage(font, c, false)
+            val ch: BufferedImage = createCharImage(font, c, true)
 
             imageWidth += ch.width
             imageHeight = max(imageHeight.toDouble(), ch.height.toDouble()).toInt()
@@ -146,8 +150,8 @@ class Font {
         /* Do not forget to flip the buffer! */
         buffer.flip()
 
-        //texWidth = imageWidth
-        //texHeight = imageHeight
+        texWidth = imageWidth
+        texHeight = imageHeight
 
         // Create Texture
         val texture = glGenTextures()
@@ -185,6 +189,16 @@ class Font {
         g.drawString(String.valueOf(c), 0, metrics.ascent)
         g.dispose()
         return image
+    }
+
+    fun staticTextMesh(text: CharSequence, llX: Float, llY: Float) : Mesh {
+        val (width, height) = window.getCurrentWindowSize()
+        return Mesh.textCanvas(
+            text.map { glyphs[it]!! },
+            llX, llY,
+            texWidth.toFloat(), texHeight.toFloat(),
+            width.toFloat(), height.toFloat()
+        )
     }
 
     /*fun drawText(text: CharSequence, x: Float, y: Float, projection: Matrix4f, model: Matrix4f) {

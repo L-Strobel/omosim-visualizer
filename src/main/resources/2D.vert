@@ -1,10 +1,10 @@
 #version 410
 
 in vec2 position;
-in vec3 color;
+in vec4 color;
 in vec2 offset;
 
-out vec3 vertexColor;
+out vec4 vertexColor;
 out vec4 gl_Position;
 
 uniform mat4 projection;

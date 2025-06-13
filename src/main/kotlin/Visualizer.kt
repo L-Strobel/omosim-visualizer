@@ -1,6 +1,7 @@
 package de.uniwuerzburg.omodvisualizer
 
 import de.uniwuerzburg.omod.core.models.ActivityType
+import de.uniwuerzburg.omodvisualizer.Controls.disabled
 import org.joml.Matrix4f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
@@ -26,6 +27,7 @@ class Visualizer {
     private lateinit var positions: Map<ActivityType?, List<Pair<Float, Float>>>
     private lateinit var transformer: CoordTransformer
     private lateinit var bBox: Array<Float>
+    private lateinit var buttons: MutableMap<ActivityType?, Button>
 
     private lateinit var textureRenderer: Renderer
 
@@ -56,7 +58,6 @@ class Visualizer {
         glClearColor(0.15f , 0.15f, 0.15f, 1.0f)
 
         // Init renderers
-
         agentRenderers = mutableMapOf<ActivityType?, Renderer>()
         for (activity in ActivityType.entries) {
             val color = when(activity) {
@@ -84,6 +85,33 @@ class Visualizer {
         textureRenderer = Renderer(Mesh.textureCanvas(), 1, "debugIn/TestTexture.png")
 
         Controls.registerControls(window)
+
+        // Buttons
+        buttons = mutableMapOf<ActivityType?, Button>()
+        var offset = 0.2f
+        for (activity in ActivityType.entries) {
+            val color = when(activity) {
+                ActivityType.HOME -> Color.CYAN
+                ActivityType.WORK -> Color.RED
+                else -> Color.YELLOW
+            }
+            val renderer = Renderer(Mesh.basicRectangle(color), 1)
+            val button = Button(offset, 0.2f, 0.05f,
+                { disabled[activity] = !disabled[activity]!!},
+                renderer
+            )
+            buttons[activity] = button
+            Controls.registerButtons(button)
+            offset += 0.15f
+        }
+
+        val renderer = Renderer(Mesh.basicRectangle(Color.GREEN), 1)
+        val button = Button(offset, 0.2f, 0.05f,
+            { disabled[null] = !disabled[null]!!},
+            renderer
+        )
+        buttons[null] = button
+        Controls.registerButtons(button)
 
         // Start timer
         lastTime = timeSource.markNow()
@@ -132,7 +160,20 @@ class Visualizer {
             .scale(0.002f * aspect, 0.002f, 1f)
 
         for ((k, v) in positions.entries) {
-            agentRenderers[k]!!.renderInstanced(projection, model, v )
+            if (!Controls.disabled[k]!!) {
+                agentRenderers[k]!!.renderInstanced(projection, model, v )
+            }
+        }
+
+        // UI
+        // Sym -1f + 0.2f*aspect, 0.05f * aspect
+        for (button in buttons.values) {
+            button.renderer.renderBasic(
+                Matrix4f(),
+                Matrix4f()
+                    .translate(-1f + button.centerX*aspect, -1f + button.centerY, 0f)
+                    .scale(button.halfWidth * aspect, button.halfWidth, 1f)
+            )
         }
 
 

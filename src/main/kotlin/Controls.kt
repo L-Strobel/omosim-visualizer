@@ -1,5 +1,6 @@
 package de.uniwuerzburg.omodvisualizer
 
+import de.uniwuerzburg.omod.core.models.ActivityType
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.NULL
@@ -12,9 +13,16 @@ object Controls {
     var up = 0f
     var right = 0f
     var pause = 1f
+    val disabled: MutableMap<ActivityType?, Boolean>
     private var mouseDrag = false
     private var mouseDragX = 0.0
     private var mouseDragY = 0.0
+    val buttons = mutableListOf<Button>()
+
+    init {
+        disabled = ActivityType.entries.associateWith { false }.toMutableMap()
+        disabled[null] = false
+    }
 
     fun registerControls(window: Window) {
         // Control
@@ -25,10 +33,26 @@ object Controls {
                     val yPos = stack.mallocDouble(1)
                     glfwGetCursorPos(w, xPos, yPos)
 
+                    val (width, height) = window.getCurrentWindowSize()
+                    val aspect  = window.getAspect()
+
+                    // In home button
+                    val xRel = xPos[0] / (width/2) - 1.0
+                    val yRel = (height - yPos[0]) / (height/2) - 1.0
+
+                    var buttonPressed = false
+                    for (uiButton in buttons) {
+                        if (uiButton.inBounds(xRel.toFloat(), yRel.toFloat(), aspect)) {
+                            uiButton.onClick()
+                            buttonPressed = true
+                        }
+                    }
+
+                    // Drag movement
                     mouseDragX = xPos[0]
                     mouseDragY = yPos[0]
+                    mouseDrag = true
                 }
-                mouseDrag = true
             } else if (button == GLFW_MOUSE_BUTTON_LEFT  && action == GLFW_RELEASE) {
                 mouseDrag = false
             }
@@ -96,5 +120,9 @@ object Controls {
             zoom = max(zoom, 0.05f)
             zoom = min(zoom, 3f)
         }
+    }
+
+    fun registerButtons(button: Button) {
+        buttons.add(button)
     }
 }

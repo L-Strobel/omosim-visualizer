@@ -1,5 +1,6 @@
 package de.uniwuerzburg.omodvisualizer
 
+import de.uniwuerzburg.omod.core.models.ActivityType
 import org.joml.Matrix4f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
@@ -15,14 +16,14 @@ import kotlin.time.TimeSource
 
 class Visualizer {
     private lateinit var window: Window
-    private lateinit var agentRenderer: Renderer
+    private lateinit var agentRenderers: MutableMap<ActivityType?, Renderer>
     private lateinit var bgRenderer: Renderer
     private var aspect: Float = 1f
     private lateinit var vAgents: List<VisualAgent>
     private val timeSource = TimeSource.Monotonic
     private var lastTime = timeSource.markNow()
     private var simTime = 0.0
-    private lateinit var positions: List<Pair<Float, Float>>
+    private lateinit var positions: Map<ActivityType?, List<Pair<Float, Float>>>
     private var speed = 10f // Speed-up compared to real time
     private lateinit var transformer: CoordTransformer
     private lateinit var bBox: Array<Float>
@@ -50,7 +51,7 @@ class Visualizer {
         vAgents = agents
         transformer = t
         bBox = b
-        positions = List(vAgents.size) { 0f to 0f }
+        positions = mapOf()
 
         // Init GL
         GL.createCapabilities() // Creates the GLCapabilities instance and makes the OpenGL bindings available for use.
@@ -62,8 +63,20 @@ class Visualizer {
         glClearColor(0.15f , 0.15f, 0.15f, 1.0f)
 
         // Init renderers
-        val mesh = Mesh.basicCircle(20, Color.CYAN)
-        agentRenderer = Renderer(mesh, vAgents.size)
+
+        agentRenderers = mutableMapOf<ActivityType?, Renderer>()
+        for (activity in ActivityType.entries) {
+            val color = when(activity) {
+                ActivityType.HOME -> Color.CYAN
+                ActivityType.WORK -> Color.RED
+                else -> Color.YELLOW
+            }
+            val mesh = Mesh.basicCircle(20, color)
+            agentRenderers[activity] = Renderer(mesh, vAgents.size)
+        }
+        val mesh = Mesh.basicCircle(20, Color.GREEN)
+        agentRenderers[null] = Renderer(mesh, vAgents.size)
+
 
         // Read background data
         val bgMesh = BackgroundReader.getOSM(
@@ -174,7 +187,7 @@ class Visualizer {
     private fun close() {
         textureRenderer.close()
         bgRenderer.close()
-        agentRenderer.close()
+        agentRenderers.forEach{ (k, v) -> v.close()}
         window.close()
         glfwTerminate()
         glfwSetErrorCallback(null)?.free()
@@ -185,7 +198,7 @@ class Visualizer {
         for (agent in vAgents) {
             agent.updatePosition(simTime)
         }
-        positions = vAgents.map { it.x to it.y }
+        positions =  vAgents.groupBy { it.activity }.mapValues { (k, v) -> v.map { it.x to it.y } }
     }
 
     private fun render() {
@@ -195,12 +208,15 @@ class Visualizer {
 
         // Plot background
         bgRenderer.render(projection, Matrix4f())
-        textureRenderer.renderBasic(projection, Matrix4f().scale(0.1f * aspect, 0.1f, 1f))
+        //textureRenderer.renderBasic(projection, Matrix4f().scale(0.1f * aspect, 0.1f, 1f))
 
         val model = Matrix4f()
             .scale(0.002f * aspect, 0.002f, 1f)
 
-        agentRenderer.renderInstanced(projection, model, positions )
+        for ((k, v) in positions.entries) {
+            agentRenderers[k]!!.renderInstanced(projection, model, v )
+        }
+
 
         glfwSwapBuffers(window.ref) // swap the color buffers
         glfwPollEvents() // Poll for window events, like keystrokes.

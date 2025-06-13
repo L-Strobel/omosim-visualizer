@@ -26,7 +26,7 @@ class Mesh(
 ) {
     private var instVBO: Int = 0
     private var instFB: FloatBuffer? = null
-    var instances: Int = 1
+    var maxInstances: Int = 1
 
     fun close() {
         glDeleteVertexArrays(vao);
@@ -34,7 +34,7 @@ class Mesh(
     }
 
     fun prepareInstancedDraw(positions: List<Pair<Float, Float>>) {
-        require(positions.size == instances)
+        require(positions.size <= maxInstances)
 
         // Fill buffer with new instance locations
         for ((x, y) in positions) {
@@ -51,16 +51,16 @@ class Mesh(
         instFB!!.clear()
     }
 
-    fun enableInstancing(n: Int, shaderProgram: ShaderProgram) {
-        if(n <= 1) {
-            throw IllegalStateException("Need at least to objects for instancing!")
+    fun enableInstancing(maxInstances: Int, shaderProgram: ShaderProgram) {
+        if(maxInstances <= 1) {
+            throw IllegalStateException("Don't enable instancing with maximum one object!")
         }
-        instances = n
+        this.maxInstances = maxInstances
 
         instVBO = glGenBuffers()
         glBindBuffer(GL_ARRAY_BUFFER, instVBO)
-        instFB = MemoryUtil.memAllocFloat(n * 2)
-        GL20.glBufferData(GL_ARRAY_BUFFER, (n * 2 * 4).toLong(), GL_DYNAMIC_DRAW)
+        instFB = MemoryUtil.memAllocFloat(maxInstances * 2)
+        GL20.glBufferData(GL_ARRAY_BUFFER, (maxInstances * 2 * 4).toLong(), GL_DYNAMIC_DRAW)
 
         val offAttrib = glGetAttribLocation(shaderProgram.ref, "offset")
         glEnableVertexAttribArray(offAttrib)

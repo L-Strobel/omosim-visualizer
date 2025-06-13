@@ -14,6 +14,7 @@ class VisualAgent (
 ) {
     var x = trace.first().x
     var y = trace.first().y
+    var activity = trace.first().activity
     private var lastPoint = trace.first()
 
     fun updatePosition(simTime: Double) {
@@ -26,6 +27,7 @@ class VisualAgent (
             lastPoint = trace.removeFirst()
             diff = simTime - trace.first().stop
             changed = true
+            activity = trace.first().activity
         }
         val thisPoint = trace.first()
         if ((thisPoint.start > simTime) && (thisPoint.start != lastPoint.stop)) {
@@ -89,7 +91,8 @@ class VisualAgent (
                                     totalTime,
                                     totalTime + time,
                                     coordMeter.x.toFloat(),
-                                    coordMeter.y.toFloat()
+                                    coordMeter.y.toFloat(),
+                                    leg.activityType
                                 )
                             )
 
@@ -130,7 +133,8 @@ class VisualAgent (
                                         totalTime + pntTime,
                                         totalTime + pntTime,
                                         coordMeter.x.toFloat(),
-                                        coordMeter.y.toFloat()
+                                        coordMeter.y.toFloat(),
+                                        null
                                     )
                                 )
                                 lastCoord = coord

@@ -60,7 +60,7 @@ class Renderer(
         shaderProgramme.addUniform(projection, "projection")
         shaderProgramme.addUniform(model, "model")
         mesh.prepareInstancedDraw(positions)
-        glDrawArraysInstanced (mesh.drawMode, 0, mesh.size, mesh.instances)
+        glDrawArraysInstanced (mesh.drawMode, 0, mesh.size, positions.size)
         mesh.cleanUpInstancedDraw()
         unbindVAO()
     }

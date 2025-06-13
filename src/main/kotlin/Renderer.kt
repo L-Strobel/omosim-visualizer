@@ -8,7 +8,8 @@ import org.lwjgl.opengl.GL31.glDrawArraysInstanced
 class Renderer(
     private val mesh: Mesh,
     instances: Int,
-    private val textureImgFN: String? = null
+    private val textureImgFN: String? = null,
+    val testFont: Boolean = false
 ) {
     private val shaderProgramme = if (textureImgFN == null ) {
         ShaderProgram(listOf("/2D.vert", "/monochrome.frag"))
@@ -19,7 +20,11 @@ class Renderer(
     init {
         bindVAO()
         shaderProgramme.link()
-        if (textureImgFN == null) {
+        if (testFont) {
+            mesh.specifyAttributeArrayWTexture(shaderProgramme)
+            Font()
+            shaderProgramme.setTextureUniform()
+        } else if (textureImgFN == null) {
             mesh.specifyAttributeArray(shaderProgramme)
         } else {
             mesh.specifyAttributeArrayWTexture(shaderProgramme)

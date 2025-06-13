@@ -6,12 +6,8 @@ import org.joml.Matrix4f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL30.*
-import org.lwjgl.system.MemoryStack.stackPush
-import org.lwjgl.system.MemoryUtil.NULL
 import java.awt.Color
 import java.io.File
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.time.TimeSource
 
 
@@ -28,6 +24,7 @@ class Visualizer {
     private lateinit var transformer: CoordTransformer
     private lateinit var bBox: Array<Float>
     private lateinit var buttons: MutableMap<ActivityType?, Button>
+    private lateinit var font: Font
 
     private lateinit var textureRenderer: Renderer
 
@@ -82,7 +79,8 @@ class Visualizer {
             transformer
         )
         bgRenderer = Renderer(bgMesh, 1)
-        textureRenderer = Renderer(Mesh.textureCanvas(), 1, "debugIn/TestTexture.png")
+        textureRenderer = Renderer(Mesh.textureCanvas(), 1, "debugIn/TestTexture.png", true)
+
 
         Controls.registerControls(window)
 
@@ -154,7 +152,8 @@ class Visualizer {
 
         // Plot background
         bgRenderer.render(projection, Matrix4f())
-        //textureRenderer.renderBasic(projection, Matrix4f().scale(0.1f * aspect, 0.1f, 1f))
+        textureRenderer.renderBasic(projection, Matrix4f().scale(1f, 0.02f, 1f))
+
 
         val model = Matrix4f()
             .scale(0.002f * aspect, 0.002f, 1f)

@@ -25,7 +25,8 @@ class Visualizer {
     private lateinit var bBox: Array<Float>
     private lateinit var buttons: MutableMap<ActivityType?, Button>
     private lateinit var font: Font
-
+    private lateinit var dynTextRenderer: DynTextRenderer
+    private lateinit var uiBGRenderer: Renderer
     private lateinit var textureRenderer: Renderer
 
     fun run() {
@@ -39,7 +40,7 @@ class Visualizer {
         window = Window("")
         aspect = window.getAspect()
 
-        val (agents, t, b) = VisualAgent.fromFile(File(("debugIn/basicTest.json")), 7000, aspect)
+        val (agents, t, b) = VisualAgent.fromFile(File(("debugIn/wrzb.json")), 7000, aspect)
         vAgents = agents
         transformer = t
         bBox = b
@@ -49,8 +50,8 @@ class Visualizer {
         GL.createCapabilities() // Creates the GLCapabilities instance and makes the OpenGL bindings available for use.
 
         // GL Features
-        // glEnable(GL_BLEND)
-        // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
         glClearColor(0.15f , 0.15f, 0.15f, 1.0f)
 
@@ -79,9 +80,13 @@ class Visualizer {
             transformer
         )
         bgRenderer = Renderer(bgMesh, 1)
-        textureRenderer = Renderer(Mesh.textureCanvas(), 1, "debugIn/TestTexture.png", true)
 
+        uiBGRenderer = Renderer(Mesh.basicRectangle(Color(0f, 0f,0f,0.5f)), 1)
 
+        val font = Font(window)
+        val textMesh = font.staticTextMesh("Home", -1f + 0.15f*aspect,-0.725f)
+        textureRenderer = Renderer(textMesh, 1, "debugIn/TestTexture.png", true)
+        dynTextRenderer = DynTextRenderer(window, font)
         Controls.registerControls(window)
 
         // Buttons
@@ -126,6 +131,8 @@ class Visualizer {
     }
 
     private fun close() {
+        uiBGRenderer.close()
+        dynTextRenderer.close()
         textureRenderer.close()
         bgRenderer.close()
         agentRenderers.forEach{ (k, v) -> v.close()}
@@ -152,8 +159,6 @@ class Visualizer {
 
         // Plot background
         bgRenderer.render(projection, Matrix4f())
-        textureRenderer.renderBasic(projection, Matrix4f().scale(1f, 0.02f, 1f))
-
 
         val model = Matrix4f()
             .scale(0.002f * aspect, 0.002f, 1f)
@@ -165,6 +170,15 @@ class Visualizer {
         }
 
         // UI
+        uiBGRenderer.renderBasic(
+            Matrix4f(),
+            Matrix4f()
+                .translate(-1f + 0.65f*aspect, -1f + 0.3f, 0f)
+                .scale(0.60f * aspect, 0.2f, 1f)
+        )
+
+        textureRenderer.renderBasic(Matrix4f(), Matrix4f())
+
         // Sym -1f + 0.2f*aspect, 0.05f * aspect
         for (button in buttons.values) {
             button.renderer.renderBasic(
@@ -174,6 +188,10 @@ class Visualizer {
                     .scale(button.halfWidth * aspect, button.halfWidth, 1f)
             )
         }
+
+        val time = String.format("Day %01d %02d:%02d", (simTime / (24*60) + 1).toInt(), (simTime / 60 % 24).toInt(), (simTime % 60).toInt())
+        dynTextRenderer.updateTextTo(time, -1f + 0.15f*aspect, -0.6f)
+        dynTextRenderer.render(Matrix4f(), Matrix4f())
 
 
         glfwSwapBuffers(window.ref) // swap the color buffers

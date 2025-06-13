@@ -29,7 +29,7 @@ class Mesh(
     var maxInstances: Int = 1
 
     fun close() {
-        glDeleteVertexArrays(vao);
+        glDeleteVertexArrays(vao)
         glDeleteBuffers(vbo)
     }
 
@@ -155,6 +155,66 @@ class Mesh(
                 vertices.addAll(colorFloats)
             }
             return fromVertices(vertices.toFloatArray())
+        }
+
+        fun textCanvasVertices (
+            glyphs: List<Glyph>,
+            llX: Float, llY: Float,
+            texWidth: Float, texHeight: Float,
+            windowWidth: Float, windowHeight: Float
+        ): FloatArray {
+            val colorFloats = unpackColor(Color.WHITE)
+            val vertices = ArrayList<Float>(glyphs.size * 6 * (2 + 3 + 2))
+
+            var xOffset = 0f
+            for ((i, glyph) in glyphs.withIndex()) {
+                // Window position
+                val ww = glyph.width.toFloat() / windowWidth
+                val wh = glyph.height.toFloat() / windowHeight
+
+                //val charAspect = glyph.height.toFloat() /  glyph.width.toFloat()
+
+                val positions = listOf(
+                    listOf( llX+   xOffset, llY),
+                    listOf( llX+   xOffset, llY + wh),
+                    listOf( llX+ww+xOffset, llY + wh),
+                    listOf( llX+ww+xOffset, llY + wh),
+                    listOf( llX+ww+xOffset, llY),
+                    listOf( llX+   xOffset, llY),
+                )
+
+                // Atlas position
+                val gx = glyph.x.toFloat() / texWidth
+                val gy = glyph.y.toFloat() / texHeight
+                val gw = glyph.width.toFloat() / texWidth
+                val gh = glyph.height.toFloat() / texHeight
+
+                val texPositions = listOf(
+                    listOf(gx, gy),
+                    listOf(gx, gy+gh),
+                    listOf(gx+gw, gy+gh),
+                    listOf(gx+gw, gy+gh),
+                    listOf(gx+gw, gy),
+                    listOf(gx, gy),
+                )
+                for ((position, texPosition) in positions.zip(texPositions)) {
+                    vertices.addAll(position)
+                    vertices.addAll(colorFloats)
+                    vertices.addAll(texPosition)
+                }
+                xOffset += ww
+            }
+            return vertices.toFloatArray()
+        }
+
+        fun textCanvas(
+            glyphs: List<Glyph>,
+            llX: Float, llY: Float,
+            texWidth: Float, texHeight: Float,
+            windowWidth: Float, windowHeight: Float
+        ): Mesh {
+            val vertices = textCanvasVertices(glyphs, llX, llY, texWidth, texHeight, windowWidth, windowHeight)
+            return fromVertices(vertices)
         }
 
         fun textureCanvas(): Mesh {

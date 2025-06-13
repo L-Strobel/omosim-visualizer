@@ -22,7 +22,6 @@ class Renderer(
         shaderProgramme.link()
         if (testFont) {
             mesh.specifyAttributeArrayWTexture(shaderProgramme)
-            Font()
             shaderProgramme.setTextureUniform()
         } else if (textureImgFN == null) {
             mesh.specifyAttributeArray(shaderProgramme)

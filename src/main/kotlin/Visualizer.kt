@@ -24,16 +24,9 @@ class Visualizer {
     private var lastTime = timeSource.markNow()
     private var simTime = 0.0
     private lateinit var positions: Map<ActivityType?, List<Pair<Float, Float>>>
-    private var speed = 10f // Speed-up compared to real time
     private lateinit var transformer: CoordTransformer
     private lateinit var bBox: Array<Float>
-    private var zoom = 1f
-    private var up = 0f
-    private var right = 0f
-    private var pause = 1f
-    private var mouseDrag = false
-    private var mouseDragX = 0.0
-    private var mouseDragY = 0.0
+
     private lateinit var textureRenderer: Renderer
 
     fun run() {
@@ -90,85 +83,7 @@ class Visualizer {
         bgRenderer = Renderer(bgMesh, 1)
         textureRenderer = Renderer(Mesh.textureCanvas(), 1, "debugIn/TestTexture.png")
 
-        // Control
-        glfwSetMouseButtonCallback(window.ref) { w: Long, button: Int, action: Int, mods: Int ->
-            if (button == GLFW_MOUSE_BUTTON_LEFT  && action == GLFW_PRESS) {
-                stackPush().use { stack ->
-                    val xPos = stack.mallocDouble(1)
-                    val yPos = stack.mallocDouble(1)
-                    glfwGetCursorPos(w, xPos, yPos)
-
-                    mouseDragX = xPos[0]
-                    mouseDragY = yPos[0]
-                }
-                mouseDrag = true
-            } else if (button == GLFW_MOUSE_BUTTON_LEFT  && action == GLFW_RELEASE) {
-                mouseDrag = false
-            }
-        }
-        glfwSetCursorPosCallback(window.ref) { w: Long , xPos: Double, yPos: Double ->
-            if (mouseDrag) {
-                val (width, height) = window.getCurrentWindowSize()
-                up += ((yPos - mouseDragY) / height * 2).toFloat() * zoom
-                right -= ((xPos - mouseDragX) / width  * 2).toFloat() * zoom
-
-                mouseDragX = xPos
-                mouseDragY = yPos
-            }
-        }
-        glfwSetKeyCallback(window.ref) { window: Long, key: Int, scancode: Int, action: Int, mods: Int ->
-            val moveAction = (action == GLFW_REPEAT ) || (action == GLFW_PRESS )
-            val moveStrength = 0.02f
-            if (key == GLFW_KEY_W && moveAction) {
-                up += moveStrength
-            } else if (key == GLFW_KEY_A && moveAction) {
-                right -= moveStrength
-            } else if (key == GLFW_KEY_S && moveAction) {
-                up -= moveStrength
-            } else if (key == GLFW_KEY_D && moveAction) {
-                right += moveStrength
-            } else if (key == GLFW_KEY_E  && action == GLFW_RELEASE) {
-                speed *= 2
-            } else if (key == GLFW_KEY_R && action == GLFW_RELEASE)  {
-                speed /= 2
-            } else if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)  {
-                pause = if (pause == 1f) 0f else 1f
-            } else if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)  {
-                val monitor = glfwGetWindowMonitor(window)
-                if (monitor != NULL) {
-                    val vidMode = glfwGetVideoMode(glfwGetPrimaryMonitor())!!
-                    glfwSetWindowMonitor(
-                        window,
-                        NULL,
-                        vidMode.width() / 8,
-                        vidMode.height() / 8,
-                        vidMode.width() * 3 / 4,
-                        vidMode.height() * 3 / 4,
-                        vidMode.refreshRate()
-                    )
-                }
-            } else if (key == GLFW_KEY_F11 && action == GLFW_RELEASE) {
-                val monitor = glfwGetWindowMonitor(window)
-                if (monitor == NULL) {
-                    val fsMonitor =glfwGetPrimaryMonitor()
-                    val vidMode = glfwGetVideoMode(fsMonitor)!!
-                    glfwSetWindowMonitor(
-                        window,
-                        fsMonitor,
-                        0,
-                        0,
-                        vidMode.width(),
-                        vidMode.height(),
-                        vidMode.refreshRate()
-                    )
-                }
-            }
-        }
-        glfwSetScrollCallback(window.ref) {  window: Long, xoffset: Double, yoffset: Double ->
-            zoom += - yoffset.toFloat() * 0.05f
-            zoom = max(zoom, 0.05f)
-            zoom = min(zoom, 3f)
-        }
+        Controls.registerControls(window)
 
         // Start timer
         lastTime = timeSource.markNow()
@@ -194,7 +109,7 @@ class Visualizer {
     }
 
     private fun updateState(delta: Long) {
-        simTime += delta / 1e9 * speed * pause
+        simTime += delta / 1e9 * Controls.speed * Controls.pause
         for (agent in vAgents) {
             agent.updatePosition(simTime)
         }
@@ -204,7 +119,10 @@ class Visualizer {
     private fun render() {
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-        val projection = Matrix4f().ortho2D(-zoom + right, zoom + right, -zoom + up, zoom + up)
+        val projection = Matrix4f().ortho2D(
+            -Controls.zoom + Controls.right, Controls.zoom + Controls.right,
+            -Controls.zoom + Controls.up, Controls.zoom + Controls.up
+        )
 
         // Plot background
         bgRenderer.render(projection, Matrix4f())

@@ -14,4 +14,8 @@ class Button (
         if (yRel >= (-1f+centerY+halfWidth)) return false
         return true
     }
+
+    fun close() {
+        renderer.close()
+    }
 }

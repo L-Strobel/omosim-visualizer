@@ -14,6 +14,7 @@ import java.io.FileOutputStream
 import java.nio.FloatBuffer
 import kotlin.math.PI
 import kotlin.math.cos
+import kotlin.math.min
 import kotlin.math.tan
 
 class Mesh(
@@ -150,6 +151,118 @@ class Mesh(
                 listOf(1f, -1f),
                 listOf(-1f, -1f),
             )
+            val vertices = ArrayList<Float>(positions.size * 2 * 2)
+            for (position in positions) {
+                vertices.addAll(position)
+                vertices.addAll(colorFloats)
+            }
+            return fromVertices(vertices.toFloatArray())
+        }
+
+        fun roundedCornerRectangle(color: Color, roundedness: Double, nSegments: Int, width: Float, height: Float): Mesh {
+            val r = min(width, min(height, roundedness.toFloat()))
+            val cw = width - 2*r
+            val ch = height - 2*r
+
+            val colorFloats = unpackColor(color)
+            val positions = mutableListOf<List<Float>>()
+            // Centerpiece
+            if (cw > 0f) {
+                positions.addAll(
+                    listOf(
+                        listOf(-1f*cw, -1f*ch),
+                        listOf(-1f*cw,  1f*ch),
+                        listOf( 1f*cw,  1f*ch),
+                        listOf( 1f*cw,  1f*ch),
+                        listOf (1f*cw, -1f*ch),
+                        listOf(-1f*cw, -1f*ch),
+                    )
+                )
+            }
+
+            // Border centers
+            if (r > 0f) {
+                val lSideRect = listOf(
+                    listOf(-1f*r - cw - 1f*r, -1f*ch),
+                    listOf(-1f*r - cw - 1f*r,  1f*ch),
+                    listOf( 1f*r - cw - 1f*r,  1f*ch),
+                    listOf (1f*r - cw - 1f*r,  1f*ch),
+                    listOf( 1f*r - cw - 1f*r, -1f*ch),
+                    listOf(-1f*r - cw - 1f*r, -1f*ch),
+                )
+
+                val rSideRect = listOf(
+                    listOf(-1f*r + cw + 1f*r, -1f*ch),
+                    listOf(-1f*r + cw + 1f*r,  1f*ch),
+                    listOf( 1f*r + cw + 1f*r,  1f*ch),
+                    listOf (1f*r + cw + 1f*r,  1f*ch),
+                    listOf( 1f*r + cw + 1f*r, -1f*ch),
+                    listOf(-1f*r + cw + 1f*r, -1f*ch),
+                )
+
+                val uSideRect = listOf(
+                    listOf(-1f*cw, -1f*r + ch + 1f*r),
+                    listOf(-1f*cw,  1f*r + ch + 1f*r),
+                    listOf( 1f*cw,  1f*r + ch + 1f*r),
+                    listOf (1f*cw,  1f*r + ch + 1f*r),
+                    listOf( 1f*cw, -1f*r + ch + 1f*r),
+                    listOf(-1f*cw, -1f*r + ch + 1f*r),
+                )
+
+                val dSideRect = listOf(
+                    listOf(-1f*cw, -1f*r - ch - 1f*r),
+                    listOf(-1f*cw,  1f*r - ch - 1f*r),
+                    listOf( 1f*cw,  1f*r - ch - 1f*r),
+                    listOf (1f*cw,  1f*r - ch - 1f*r),
+                    listOf( 1f*cw, -1f*r - ch - 1f*r),
+                    listOf(-1f*cw, -1f*r - ch - 1f*r),
+                )
+
+                positions.addAll(lSideRect)
+                positions.addAll(rSideRect)
+                positions.addAll(uSideRect)
+                positions.addAll(dSideRect)
+            }
+
+            // Corners
+            val theta = PI * 2 / 4 / nSegments
+            val tangetialFactor = tan(theta).toFloat()
+            val radialFactor = cos(theta).toFloat()
+
+            // Center
+            var x = 0.5f
+            var y = 0f
+
+            var cx = cw
+            var cy = ch
+            for (i in 0 until nSegments* 4) {
+                if (i == nSegments) {
+                    cx = -cw
+                }
+                if (i == nSegments*2) {
+                    cy = -ch
+                }
+                if (i == nSegments*3) {
+                    cx = cw
+                }
+
+
+                positions.add(listOf(cx, cy))
+                positions.add(listOf(x*r*4+cx, y*r*4+cy))
+
+
+                val tx = -y;
+                val ty = x;
+
+                x += tx * tangetialFactor;
+                y += ty * tangetialFactor;
+
+                x *= radialFactor;
+                y *= radialFactor;
+
+                positions.add(listOf(x*r*4+cx, y*r*4+cy))
+            }
+
             val vertices = ArrayList<Float>(positions.size * 2 * 2)
             for (position in positions) {
                 vertices.addAll(position)

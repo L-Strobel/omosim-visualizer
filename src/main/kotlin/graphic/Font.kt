@@ -153,9 +153,9 @@ class Font(
     /**
      * Write text to a location on screen.
      */
-    fun staticTextMesh(text: CharSequence, llX: Float, llY: Float) : Mesh {
+    fun staticTextRenderer(text: CharSequence, llX: Float, llY: Float) : Renderer {
         val (width, height) = window.getCurrentWindowSize()
-        return Mesh.textCanvas(
+        return Renderer(texture = this.texture).addTextCanvas(
             text.map { glyphs[it] ?: glyphs['?']!! },
             llX, llY,
             textureWidth.toFloat(), textureHeight.toFloat(),

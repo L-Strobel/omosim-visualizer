@@ -2,10 +2,7 @@ package de.uniwuerzburg.omodvisualizer
 
 import de.uniwuerzburg.omod.core.models.ActivityType
 import de.uniwuerzburg.omodvisualizer.Controls.disabled
-import de.uniwuerzburg.omodvisualizer.graphic.DynTextRenderer
-import de.uniwuerzburg.omodvisualizer.graphic.Font
-import de.uniwuerzburg.omodvisualizer.graphic.Mesh
-import de.uniwuerzburg.omodvisualizer.graphic.Renderer
+import de.uniwuerzburg.omodvisualizer.graphic.*
 import org.joml.Matrix4f
 import java.awt.Color
 
@@ -24,12 +21,8 @@ class UI(
         val aspect = window.getAspect()
         val font = Font(window)
 
-        background = Renderer(
-            Mesh.roundedCornerRectangle(
-                Color(0f, 0f, 0f, 0.7f),
-                0.2, 20, 3f, 1f
-            ), 1, null
-        )
+        background = Renderer()
+            .addRoundedCornerRectangle(Color(0f, 0f, 0f, 0.7f), 0.2, 20, 3f, 1f)
 
         clock = DynTextRenderer(window, font)
 
@@ -44,36 +37,24 @@ class UI(
                 ActivityType.WORK -> Color.RED
                 else -> Color.YELLOW
             }
-            val borderRenderer = Renderer(
-                Mesh.roundedCornerRectangle(Color.BLACK, 0.2, 20, 1f, 1f),
-                1, null
-            )
-            val renderer = Renderer(
-                Mesh.roundedCornerRectangle(color, 0.2, 20, 1f, 1f),
-                1, null
-            )
+            val borderRenderer = Renderer().addRoundedCornerRectangle(Color.BLACK, 0.2, 20, 1f, 1f)
+            val renderer = Renderer().addRoundedCornerRectangle(color, 0.2, 20, 1f, 1f)
             val button = Button(
                 offset, 0.2f, 0.3f,
                 { disabled[activity] = !disabled[activity]!! },
                 renderer,
                 borderRenderer
             )
-            val txt = font.staticTextMesh(activity.toString(), -1f + (offset - 0.05f) * aspect, -0.725f)
-            staticTexts.add(Renderer(txt, 1, font.texture))
+            val txt = font.staticTextRenderer(activity.toString(), -1f + (offset - 0.05f) * aspect, -0.725f)
+            staticTexts.add(txt)
             buttons[activity] = button
             offset += 1f * s
         }
 
-        val txt = font.staticTextMesh("Driving", -1f + (offset - 0.05f) * aspect, -0.725f)
-        staticTexts.add(Renderer(txt, 1, font.texture))
-        val renderer = Renderer(
-            Mesh.roundedCornerRectangle(Color.GREEN, 0.2, 20, 1f, 1f),
-            1, null
-        )
-        val borderRenderer = Renderer(
-            Mesh.roundedCornerRectangle(Color.BLACK, 0.2, 20, 1f, 1f),
-            1, null
-        )
+        val txt = font.staticTextRenderer("Driving", -1f + (offset - 0.05f) * aspect, -0.725f)
+        staticTexts.add(txt)
+        val renderer = Renderer().addRoundedCornerRectangle(Color.GREEN, 0.2, 20, 1f, 1f)
+        val borderRenderer = Renderer().addRoundedCornerRectangle(Color.BLACK, 0.2, 20, 1f, 1f)
         val button = Button(
             offset, 0.2f, 0.3f,
             { disabled[null] = !disabled[null]!! },

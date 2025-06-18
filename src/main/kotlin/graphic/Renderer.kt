@@ -8,10 +8,12 @@ import org.lwjgl.system.MemoryUtil
 import java.nio.FloatBuffer
 
 class Renderer(
-    private val mesh: Mesh,
-    instances: Int = 1,
+    val vao: Vao = Vao(),
+    private val instances: Int = 1,
     private val texture: Int? = null
 ) {
+    lateinit var mesh: Mesh
+
     private val shaderProgramme = if (texture == null) {
         ShaderProgram(listOf("/2D.vert", "/monochrome.frag"))
     } else {
@@ -23,8 +25,10 @@ class Renderer(
     private var instFB: FloatBuffer? = null
     private var maxInstances: Int = 1
 
-    init {
-        mesh.vao.withBound {
+    fun addMesh(mesh: Mesh) {
+        this.mesh = mesh
+
+        vao.withBound {
             shaderProgramme.link()
             if (texture != null) {
                 specifyAttributeArrayWTexture(mesh.vbo, shaderProgramme)
@@ -42,7 +46,7 @@ class Renderer(
 
     fun render(projection: Matrix4f, model: Matrix4f) {
         shaderProgramme.use()
-        mesh.vao.withBound {
+        vao.withBound {
             if (texture != null) {
                 glBindTexture(GL_TEXTURE_2D, texture)
             }
@@ -57,7 +61,7 @@ class Renderer(
 
     fun renderBasic(projection: Matrix4f, model: Matrix4f) {
         shaderProgramme.use()
-        mesh.vao.withBound {
+        vao.withBound {
             if (texture != null) {
                 glBindTexture(GL_TEXTURE_2D, texture)
             }
@@ -70,7 +74,7 @@ class Renderer(
 
     fun renderInstanced(projection: Matrix4f, model: Matrix4f, positions: List<Pair<Float, Float>>) {
         shaderProgramme.use()
-        mesh.vao.withBound {
+        vao.withBound {
             if (texture != null) {
                 glBindTexture(GL_TEXTURE_2D, texture)
             }

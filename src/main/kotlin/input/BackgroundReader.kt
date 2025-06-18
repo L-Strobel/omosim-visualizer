@@ -2,6 +2,8 @@ package de.uniwuerzburg.omodvisualizer.input
 
 import crosby.binary.osmosis.OsmosisReader
 import de.uniwuerzburg.omodvisualizer.graphic.Mesh
+import de.uniwuerzburg.omodvisualizer.graphic.Renderer
+import de.uniwuerzburg.omodvisualizer.graphic.addMeshFrom2DPolygons
 import org.locationtech.jts.geom.GeometryFactory
 import org.locationtech.jts.simplify.DouglasPeuckerSimplifier
 import org.openstreetmap.osmosis.areafilter.v0_6.BoundingBoxFilter
@@ -20,7 +22,7 @@ class BackgroundReader {
             osmFile: File,
             minLat: Double, maxLat: Double, minLon: Double, maxLon: Double,
             transformer: CoordTransformer
-        ): Mesh {
+        ): Renderer {
             val cacheFN = String.format("meshCache/bgVertices_%.8f_%.8f_%.8f_%.8f", minLat, maxLat, minLon, maxLon)
             val vCacheFile = File("${cacheFN}_vertices")
             val iCacheFile = File("${cacheFN}_indices")
@@ -29,12 +31,15 @@ class BackgroundReader {
                 (vCacheFile.exists() and !vCacheFile.isDirectory) and
                 (iCacheFile.exists() and !iCacheFile.isDirectory)
             ) {
-                Mesh.load(cacheFN)
+                val renderer = Renderer()
+                val mesh = Mesh.load(renderer.vao, cacheFN)
+                renderer.addMesh(mesh)
+                renderer
             } else {
-                val mesh = readOSM(osmFile, minLat, maxLat, minLon, maxLon, transformer)
+                val renderer = readOSM(osmFile, minLat, maxLat, minLon, maxLon, transformer)
                 Files.createDirectories(vCacheFile.toPath().parent)
-                mesh.save(cacheFN)
-                mesh
+                renderer.mesh.save(cacheFN)
+                renderer
             }
         }
 
@@ -42,7 +47,7 @@ class BackgroundReader {
             osmFile: File,
             minLat: Double, maxLat: Double, minLon: Double, maxLon: Double,
             transformer: CoordTransformer
-        ) : Mesh {
+        ) : Renderer {
             println("Start reading OSM data...")
             val geometryFactory = GeometryFactory()
             val reader = OsmosisReader( FileInputStream(osmFile) )
@@ -142,9 +147,9 @@ class BackgroundReader {
                     }
                 }
             }
-            val mesh = Mesh.from2DPolygons(polygons, colors)
+            val renderer = Renderer().addMeshFrom2DPolygons(polygons, colors)
             println("OSM data read!")
-            return mesh
+            return renderer
         }
 
         private fun makeMapPolygon(polygon: org.locationtech.jts.geom.Polygon, transformer: CoordTransformer) : Polygon? {

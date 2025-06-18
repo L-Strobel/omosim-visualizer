@@ -3,6 +3,7 @@ package de.uniwuerzburg.omodvisualizer
 import de.uniwuerzburg.omod.core.models.ActivityType
 import de.uniwuerzburg.omodvisualizer.graphic.Mesh
 import de.uniwuerzburg.omodvisualizer.graphic.Renderer
+import de.uniwuerzburg.omodvisualizer.graphic.addCircleMesh
 import de.uniwuerzburg.omodvisualizer.input.BackgroundReader
 import de.uniwuerzburg.omodvisualizer.input.CoordTransformer
 import de.uniwuerzburg.omodvisualizer.input.VisualAgent
@@ -63,15 +64,13 @@ class Visualizer {
                 ActivityType.WORK -> Color.RED
                 else -> Color.YELLOW
             }
-            val mesh = Mesh.basicCircle(20, color)
-            agentRenderers[activity] = Renderer(mesh, vAgents.size, null)
+            agentRenderers[activity] = Renderer(instances = vAgents.size).addCircleMesh(20, color)
         }
-        val mesh = Mesh.basicCircle(20, Color.GREEN)
-        agentRenderers[null] = Renderer(mesh, vAgents.size, null)
+        agentRenderers[null] = Renderer(instances = vAgents.size).addCircleMesh(20,  Color.GREEN)
 
 
         // Read background data
-        val bgMesh = BackgroundReader.getOSM(
+        bgRenderer = BackgroundReader.getOSM(
             File("C:/Users/les29rq/open_data/OSM/bayern-latest.osm.pbf"),
             bBox[0].toDouble() - 0.05,
             bBox[1].toDouble() + 0.05,
@@ -79,7 +78,6 @@ class Visualizer {
             bBox[3].toDouble() + 0.1,
             transformer
         )
-        bgRenderer = Renderer(bgMesh, 1, null)
 
         Controls.registerControls(window)
 

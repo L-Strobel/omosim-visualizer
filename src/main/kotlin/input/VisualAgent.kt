@@ -1,4 +1,4 @@
-package de.uniwuerzburg.omodvisualizer
+package de.uniwuerzburg.omodvisualizer.input
 
 import de.uniwuerzburg.omod.io.json.OutputActivity
 import de.uniwuerzburg.omod.io.json.OutputEntry

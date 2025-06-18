@@ -1,4 +1,4 @@
-package de.uniwuerzburg.omodvisualizer
+package de.uniwuerzburg.omodvisualizer.input
 
 import org.geotools.geometry.jts.JTS
 import org.geotools.referencing.CRS

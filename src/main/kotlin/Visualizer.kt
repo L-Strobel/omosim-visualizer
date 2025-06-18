@@ -1,6 +1,11 @@
 package de.uniwuerzburg.omodvisualizer
 
 import de.uniwuerzburg.omod.core.models.ActivityType
+import de.uniwuerzburg.omodvisualizer.graphic.Mesh
+import de.uniwuerzburg.omodvisualizer.graphic.Renderer
+import de.uniwuerzburg.omodvisualizer.input.BackgroundReader
+import de.uniwuerzburg.omodvisualizer.input.CoordTransformer
+import de.uniwuerzburg.omodvisualizer.input.VisualAgent
 import org.joml.Matrix4f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL

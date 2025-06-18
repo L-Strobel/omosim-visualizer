@@ -1,6 +1,7 @@
-package de.uniwuerzburg.omodvisualizer
+package de.uniwuerzburg.omodvisualizer.input
 
 import crosby.binary.osmosis.OsmosisReader
+import de.uniwuerzburg.omodvisualizer.graphic.Mesh
 import org.locationtech.jts.geom.GeometryFactory
 import org.locationtech.jts.simplify.DouglasPeuckerSimplifier
 import org.openstreetmap.osmosis.areafilter.v0_6.BoundingBoxFilter

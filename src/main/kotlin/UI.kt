@@ -2,6 +2,10 @@ package de.uniwuerzburg.omodvisualizer
 
 import de.uniwuerzburg.omod.core.models.ActivityType
 import de.uniwuerzburg.omodvisualizer.Controls.disabled
+import de.uniwuerzburg.omodvisualizer.graphic.DynTextRenderer
+import de.uniwuerzburg.omodvisualizer.graphic.Font
+import de.uniwuerzburg.omodvisualizer.graphic.Mesh
+import de.uniwuerzburg.omodvisualizer.graphic.Renderer
 import org.joml.Matrix4f
 import java.awt.Color
 

@@ -1,4 +1,4 @@
-package de.uniwuerzburg.omodvisualizer
+package de.uniwuerzburg.omodvisualizer.graphic
 
 import org.joml.*
 import org.lwjgl.opengl.GL20.*

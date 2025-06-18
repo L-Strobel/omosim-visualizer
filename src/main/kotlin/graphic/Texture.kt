@@ -1,4 +1,4 @@
-package de.uniwuerzburg.omodvisualizer
+package de.uniwuerzburg.omodvisualizer.graphic
 
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.glGenerateMipmap

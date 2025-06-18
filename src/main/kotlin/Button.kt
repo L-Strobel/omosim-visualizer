@@ -1,5 +1,7 @@
 package de.uniwuerzburg.omodvisualizer
 
+import de.uniwuerzburg.omodvisualizer.graphic.Renderer
+
 class Button (
     val centerX: Float,
     val centerY: Float,

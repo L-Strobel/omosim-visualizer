@@ -1,4 +1,4 @@
-package de.uniwuerzburg.omodvisualizer
+package de.uniwuerzburg.omodvisualizer.input
 
 import org.locationtech.jts.geom.*
 import org.locationtech.jts.operation.linemerge.LineMerger
@@ -264,7 +264,7 @@ class OSMProcessor(idTrackerType: IdTrackerType,
             val type = when (tag.key) {
                 "building"  -> MapObjectType.BUILDING
                 "highway"   ->  when(tag.value) {
-                    "motorway" ->  MapObjectType.HWY_MOTORWAY
+                    "motorway" -> MapObjectType.HWY_MOTORWAY
                     "primary" -> MapObjectType.HWY_PRIMARY
                     "secondary" -> MapObjectType.HWY_SECONDARY
                     "tertiary" -> MapObjectType.HWY_TERTIARY
@@ -274,12 +274,12 @@ class OSMProcessor(idTrackerType: IdTrackerType,
                 }
                 "waterway"  -> MapObjectType.WATER
                 "natural"  -> when(tag.value) {
-                    "water" ->MapObjectType.WATER
+                    "water" -> MapObjectType.WATER
                     else -> continue
                 }
                 "landuse"   -> {
                     when(tag.value) {
-                        "forest" ->MapObjectType.FOREST
+                        "forest" -> MapObjectType.FOREST
                         else -> continue
                     }
                 }

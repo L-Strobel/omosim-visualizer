@@ -16,8 +16,6 @@ import kotlin.time.TimeSource
 
 class Visualizer {
     private lateinit var window: Window
-    private lateinit var agentRenderers: MutableMap<ActivityType?, Renderer>
-    private lateinit var bgRenderer: Renderer
     private var aspect: Float = 1f
     private lateinit var vAgents: List<VisualAgent>
     private val timeSource = TimeSource.Monotonic
@@ -26,8 +24,11 @@ class Visualizer {
     private lateinit var positions: Map<ActivityType?, List<Pair<Float, Float>>>
     private lateinit var transformer: CoordTransformer
     private lateinit var bBox: Array<Float>
+
+    // Renderer
     private lateinit var ui: UI
-    private lateinit var tst: Renderer
+    private lateinit var agentRenderers: MutableMap<ActivityType?, Renderer>
+    private lateinit var bgRenderer: Renderer
 
     fun run() {
         init()
@@ -55,6 +56,8 @@ class Visualizer {
 
         glClearColor(0.15f , 0.15f, 0.15f, 1.0f)
 
+        Controls.registerControls(window)
+
         // Init renderers
         agentRenderers = mutableMapOf<ActivityType?, Renderer>()
         for (activity in ActivityType.entries) {
@@ -78,14 +81,10 @@ class Visualizer {
             transformer
         )
 
-        tst = Renderer().addRoundedCornerRectangle(Color(1f, 0f, 0f, 0.5f))
-        Controls.registerControls(window)
-
         ui = UI(window, -1f + 0.65f*aspect, -1f + 0.3f, 0.15f)
         for (button in ui.buttons.values) {
             Controls.registerButtons(button)
         }
-
 
         // Start timer
         lastTime = timeSource.markNow()
@@ -102,8 +101,9 @@ class Visualizer {
     }
 
     private fun close() {
+        ui.close()
         bgRenderer.close()
-        agentRenderers.forEach{ (k, v) -> v.close()}
+        agentRenderers.forEach{ (_, v) -> v.close()}
         window.close()
         glfwTerminate()
         glfwSetErrorCallback(null)?.free()
@@ -114,7 +114,7 @@ class Visualizer {
         for (agent in vAgents) {
             agent.updatePosition(simTime)
         }
-        positions =  vAgents.groupBy { it.activity }.mapValues { (k, v) -> v.map { it.x to it.y } }
+        positions =  vAgents.groupBy { it.activity }.mapValues { (_, v) -> v.map { it.x to it.y } }
     }
 
     private fun render() {
@@ -125,7 +125,8 @@ class Visualizer {
             -Controls.zoom + Controls.up, Controls.zoom + Controls.up
         )
 
-        // Plot background
+        // vvv------- DRAW CALLS -------vvv
+
         bgRenderer.render(projection, Matrix4f())
 
         val model = Matrix4f()
@@ -138,8 +139,8 @@ class Visualizer {
         }
 
         ui.render(simTime)
-        tst.render(model = Matrix4f()
-            .scale(0.5f * aspect, 0.5f, 1f))
+
+        // ^^^------- DRAW CALLS -------^^^
 
         glfwSwapBuffers(window.ref) // swap the color buffers
         glfwPollEvents() // Poll for window events, like keystrokes.

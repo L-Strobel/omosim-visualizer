@@ -13,6 +13,7 @@ import java.io.File
 import java.io.IOException
 import javax.imageio.ImageIO
 
+@Suppress("unused")
 object SnapshotCamera {
     /**
      *  Save the rendered pixels in an .png image using a framebuffer.
@@ -25,29 +26,29 @@ object SnapshotCamera {
 
         // Get output image size: here 4 x the screen size
         val (widthw, heightw) = window.getCurrentWindowSize()
-        val width = widthw * 4;
-        val height = heightw * 4;
+        val width = widthw * 4
+        val height = heightw * 4
 
         // Create texture to draw to
         val texture = glGenTextures()
         glBindTexture(GL_TEXTURE_2D, texture)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0)
 
         // Create renderbuffer
         val rbo = glGenRenderbuffers()
         glBindRenderbuffer(GL_RENDERBUFFER, rbo)
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height)
 
         // Create framebuffer
         val fb = glGenFramebuffers()
         glBindFramebuffer(GL_FRAMEBUFFER, fb)
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
-        glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0)
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo)
+        glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE)
 
         // Check that framebuffer is ok
         if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
@@ -55,8 +56,8 @@ object SnapshotCamera {
         }
 
         // Render to framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, fb);
-        glViewport(0,0, width, height); // Render on the whole framebuffer, from the lower left corner to the upper right
+        glBindFramebuffer(GL_FRAMEBUFFER, fb)
+        glViewport(0,0, width, height) // Render on the whole framebuffer, from the lower left corner to the upper right
         val projection = Matrix4f().ortho2D(-zoom + right, zoom + right, -zoom + up, zoom + up)
         renderer.render( projection, Matrix4f()) // Draw call
         glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE)
@@ -67,7 +68,7 @@ object SnapshotCamera {
         glPixelStorei(GL_PACK_ALIGNMENT, 1) // Not sure if important
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
         stbi_flip_vertically_on_write(true)
-        val success = stbi_write_png("snapshot.png", width, height, 4, data, width * 4);
+        val success = stbi_write_png("snapshot.png", width, height, 4, data, width * 4)
         if (!success) {
             println("Couldn't save")
         }

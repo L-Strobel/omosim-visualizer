@@ -24,6 +24,7 @@ class Mesh(
     fun close() {
         vao.close()
         vbo.close()
+        ibo?.close()
     }
 
     companion object {
@@ -443,9 +444,6 @@ class Mesh(
                 glGetBufferSubData(GL_ARRAY_BUFFER, 0, buffer)
             }
 
-            println("First saved")
-            println(buffer.asFloatBuffer().get(0))
-
             val fos = FileOutputStream("${fn}_vertices")
             val channel = fos.channel
 
@@ -457,7 +455,7 @@ class Mesh(
         stackPush().use { _ ->
             val buffer = BufferUtils.createByteBuffer(this.indexSize * 4)
             ibo.withBound {
-                glGetBufferSubData(GL_ARRAY_BUFFER, 0, buffer)
+                glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, buffer)
             }
 
             val fos = FileOutputStream("${fn}_indices")
@@ -467,6 +465,5 @@ class Mesh(
 
             fos.close()
         }
-
     }
 }

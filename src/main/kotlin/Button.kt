@@ -5,7 +5,9 @@ class Button (
     val centerY: Float,
     val halfWidth: Float,
     val onClick: () -> Unit,
-    val renderer: Renderer
+    val renderer: Renderer,
+    val borderRenderer: Renderer,
+    val active: Boolean = true
 ) {
     fun inBounds(xRel: Float, yRel: Float, aspect: Float) : Boolean {
         if (xRel <  (-1f+(centerX-halfWidth)*aspect)) return false

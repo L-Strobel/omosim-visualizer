@@ -5,7 +5,12 @@ import de.uniwuerzburg.omodvisualizer.Controls.disabled
 import org.joml.Matrix4f
 import java.awt.Color
 
-class UI(val window: Window) {
+class UI(
+    val window: Window,
+    val x: Float,
+    val y: Float,
+    val s: Float
+) {
     val buttons = mutableMapOf<ActivityType?, Button>()
     val background: Renderer
     val staticTexts = mutableListOf<Renderer>()
@@ -27,28 +32,49 @@ class UI(val window: Window) {
         // Buttons
         var offset = 0.2f
         for (activity in ActivityType.entries) {
+            if (activity == ActivityType.BUSINESS) {
+                continue
+            }
             val color = when (activity) {
                 ActivityType.HOME -> Color.CYAN
                 ActivityType.WORK -> Color.RED
                 else -> Color.YELLOW
             }
-            val renderer = Renderer(Mesh.basicRectangle(color), 1)
-            val button = Button(
-                offset, 0.2f, 0.05f,
-                { disabled[activity] = !disabled[activity]!! },
-                renderer
+            val borderRenderer = Renderer(
+                Mesh.roundedCornerRectangle(Color.BLACK, 0.2, 20, 1f, 1f),
+                1
             )
-            val txt = font.staticTextMesh("Home", -1f + (offset - 0.05f) * aspect, -0.725f)
+            val renderer = Renderer(
+                Mesh.roundedCornerRectangle(color, 0.2, 20, 1f, 1f),
+                1
+            )
+            val button = Button(
+                offset, 0.2f, 0.3f,
+                { disabled[activity] = !disabled[activity]!! },
+                renderer,
+                borderRenderer
+            )
+            val txt = font.staticTextMesh(activity.toString(), -1f + (offset - 0.05f) * aspect, -0.725f)
             staticTexts.add(Renderer(txt, 1, "", true))
             buttons[activity] = button
-            offset += 0.15f
+            offset += 1f * s
         }
 
-        val renderer = Renderer(Mesh.basicRectangle(Color.GREEN), 1)
+        val txt = font.staticTextMesh("Driving", -1f + (offset - 0.05f) * aspect, -0.725f)
+        staticTexts.add(Renderer(txt, 1, "", true))
+        val renderer = Renderer(
+            Mesh.roundedCornerRectangle(Color.GREEN, 0.2, 20, 1f, 1f),
+            1
+        )
+        val borderRenderer = Renderer(
+            Mesh.roundedCornerRectangle(Color.BLACK, 0.2, 20, 1f, 1f),
+            1
+        )
         val button = Button(
-            offset, 0.2f, 0.05f,
+            offset, 0.2f, 0.3f,
             { disabled[null] = !disabled[null]!! },
-            renderer
+            renderer,
+            borderRenderer
         )
         buttons[null] = button
     }
@@ -59,21 +85,27 @@ class UI(val window: Window) {
         background.renderBasic(
             Matrix4f(),
             Matrix4f()
-                .translate(-1f + 0.65f*aspect, -1f + 0.3f, 0f)
-                .scale(0.2f*aspect, 0.2f, 1f)
+                .translate(x, y, 0f)
+                .scale(s*aspect, s, 1f)
         )
 
         for (text in staticTexts) {
-            text.renderBasic(Matrix4f(), Matrix4f())
+            text.renderBasic(Matrix4f(), Matrix4f().scale(1f, 1f, 1f))
         }
 
         // Sym -1f + 0.2f*aspect, 0.05f * aspect
         for (button in buttons.values) {
+            button.borderRenderer.renderBasic(
+                Matrix4f(),
+                Matrix4f()
+                    .translate(-1f + button.centerX*aspect, -1f + button.centerY, 0f)
+                    .scale((button.halfWidth*1.2f) * aspect * s, (button.halfWidth*1.2f) * s, 1f)
+            )
             button.renderer.renderBasic(
                 Matrix4f(),
                 Matrix4f()
                     .translate(-1f + button.centerX*aspect, -1f + button.centerY, 0f)
-                    .scale(button.halfWidth * aspect, button.halfWidth, 1f)
+                    .scale(button.halfWidth * aspect * s, button.halfWidth * s, 1f)
             )
         }
 

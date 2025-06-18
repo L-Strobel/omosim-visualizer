@@ -78,10 +78,11 @@ class Visualizer {
 
         Controls.registerControls(window)
 
-        ui = UI(window)
+        ui = UI(window, -1f + 0.65f*aspect, -1f + 0.3f, 0.15f)
         for (button in ui.buttons.values) {
             Controls.registerButtons(button)
         }
+
 
         // Start timer
         lastTime = timeSource.markNow()

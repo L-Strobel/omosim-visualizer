@@ -81,7 +81,7 @@ class Visualizer {
             transformer
         )
 
-        ui = UI(window, -1f + 0.65f*aspect, -1f + 0.3f, 0.15f)
+        ui = UI(window)
         for (button in ui.buttons.values) {
             Controls.registerButtons(button)
         }

@@ -7,27 +7,45 @@ import org.joml.Matrix4f
 import java.awt.Color
 
 class UI(
-    val window: Window,
-    val x: Float,
-    val y: Float,
-    val s: Float
+    val window: Window
 ) {
     val buttons = mutableMapOf<ActivityType?, Button>()
-    val background: Renderer
+    val backgroundClock: Renderer
+    val backgroundSettings: Renderer
     val staticTexts = mutableListOf<Renderer>()
     val clock: DynTextRenderer
 
+    // Colors
+    val uiBlack = Color(0f, 0f, 0f, 0.7f)
+
+    // Important positions
+    val topSettings = 0.5f
+    val widthSettings = 0.375f
+
     init {
         val aspect = window.getAspect()
-        val font = Font(window)
+        val fontLarge = Font(window)
+        val fontMedium = Font(window,40)
+        val fontSmall = Font(window,34)
+        val fontSmallest = Font(window,30)
 
-        background = Renderer()
-            .addRoundedCornerRectangle(Color(0f, 0f, 0f, 0.7f), width = 3f, height =  1f)
+        // Clock Widget
+        backgroundClock = Renderer()
+            .addRoundedCornerRectangle(uiBlack, width = 0.3f, height = 0.06f, roundness = 0.03f)
+        clock = DynTextRenderer(window, fontLarge)
 
-        clock = DynTextRenderer(window, font)
+        // Settings Widget
+        backgroundSettings = Renderer()
+            .addRoundedCornerRectangle(uiBlack, width = widthSettings, height = topSettings, roundness = 0.05f)
+
+        val headerSettings = fontMedium.staticTextRenderer("Activities", 1f-widthSettings/4f, topSettings-0.1f)
+        staticTexts.add(headerSettings)
+
+        val attribution = fontSmallest.staticTextRenderer("Map data from OpenStreetMap", 0.77f, -0.97f)
+        staticTexts.add(attribution)
 
         // Buttons
-        var offset = 0.2f
+        var offset = 0.125f
         for (activity in ActivityType.entries) {
             if (activity == ActivityType.BUSINESS) {
                 continue
@@ -37,26 +55,29 @@ class UI(
                 ActivityType.WORK -> Color.RED
                 else -> Color.YELLOW
             }
-            val borderRenderer = Renderer().addRoundedCornerRectangle(Color.BLACK)
-            val renderer = Renderer().addRoundedCornerRectangle(color)
+
+            val aColor = Color(color.red, color.green, color.blue, (255*0.6).toInt())
+            val borderRenderer = Renderer().addRoundedCornerRectangle(uiBlack, roundness = 0.5f)
+            val renderer = Renderer().addRoundedCornerRectangle(aColor, roundness = 0.5f)
             val button = Button(
-                offset, 0.2f, 0.3f,
+                1f-widthSettings/7f, topSettings-0.1f-offset, 0.3f,
                 { disabled[activity] = !disabled[activity]!! },
                 renderer,
                 borderRenderer
             )
-            val txt = font.staticTextRenderer(activity.toString(), -1f + (offset - 0.05f) * aspect, -0.725f)
+            val txt = fontSmall.staticTextRenderer(activity.toString(), 1f-widthSettings/2.1f, topSettings-0.1f-offset)
             staticTexts.add(txt)
             buttons[activity] = button
-            offset += 1f * s
+            offset += 0.125f
         }
 
-        val txt = font.staticTextRenderer("Driving", -1f + (offset - 0.05f) * aspect, -0.725f)
+        val txt = fontSmall.staticTextRenderer("Driving", 1f-widthSettings/2.1f, topSettings-0.1f-offset)
         staticTexts.add(txt)
-        val renderer = Renderer().addRoundedCornerRectangle(Color.GREEN)
-        val borderRenderer = Renderer().addRoundedCornerRectangle(Color.BLACK)
+        val aColor = Color(Color.GREEN.red, Color.GREEN.green, Color.GREEN.blue, (255*0.6).toInt())
+        val renderer = Renderer().addRoundedCornerRectangle(aColor, roundness = 0.5f)
+        val borderRenderer = Renderer().addRoundedCornerRectangle(uiBlack, roundness = 0.5f)
         val button = Button(
-            offset, 0.2f, 0.3f,
+            1f-widthSettings/7f, topSettings-0.1f-offset, 0.3f,
             { disabled[null] = !disabled[null]!! },
             renderer,
             borderRenderer
@@ -67,40 +88,43 @@ class UI(
     fun render(simTime: Double) {
         val aspect = window.getAspect()
 
-        background.render(
-            Matrix4f(),
-            Matrix4f()
-                .translate(x, y, 0f)
-                .scale(s*aspect, s, 1f)
+        backgroundClock.render(
+            model = Matrix4f()
+                .translate(0f, -1f + 0.125f, 0f)
+                .scale( aspect,  1f, 1f)
+        )
+        backgroundSettings.render(
+            model = Matrix4f()
+                .translate(1f, 0.0f, 0f)
+                .scale( aspect,  1f, 1f)
         )
 
         for (text in staticTexts) {
-            text.render(Matrix4f(), Matrix4f().scale(1f, 1f, 1f))
+            text.render()
         }
 
         // Sym -1f + 0.2f*aspect, 0.05f * aspect
         for (button in buttons.values) {
             button.borderRenderer.render(
-                Matrix4f(),
-                Matrix4f()
-                    .translate(-1f + button.centerX*aspect, -1f + button.centerY, 0f)
-                    .scale((button.halfWidth*1.2f) * aspect * s, (button.halfWidth*1.2f) * s, 1f)
+                model = Matrix4f()
+                    .translate(button.centerX, button.centerY, 0f)
+                    .scale((button.halfWidth*1.3f) * aspect *  0.1f, (button.halfWidth*1.3f) *  0.1f, 1f)
             )
             button.renderer.render(
-                Matrix4f(),
-                Matrix4f()
-                    .translate(-1f + button.centerX*aspect, -1f + button.centerY, 0f)
-                    .scale(button.halfWidth * aspect * s, button.halfWidth * s, 1f)
+                model = Matrix4f()
+                    .translate(button.centerX, button.centerY, 0f)
+                    .scale(button.halfWidth * aspect *  0.1f, button.halfWidth *  0.1f, 1f)
             )
         }
 
         val time = String.format("Day %01d %02d:%02d", (simTime / (24*60) + 1).toInt(), (simTime / 60 % 24).toInt(), (simTime % 60).toInt())
-        clock.updateTextTo(time, -1f + 0.15f, -0.6f)
-        clock.render(Matrix4f(), Matrix4f())
+        clock.updateTextTo(time, 0f, -0.9f)
+        clock.render(model = Matrix4f())
     }
 
     fun close() {
-        background.close()
+        backgroundClock.close()
+        backgroundSettings.close()
         clock.close()
         for (button in buttons.values) {
             button.close()

@@ -6,21 +6,13 @@ import org.lwjgl.opengl.GL30.*
 import org.lwjgl.system.MemoryStack.stackPush
 import java.awt.Color
 import java.awt.Font
-import java.awt.Font.MONOSPACED
 import java.awt.Font.PLAIN
 import java.awt.RenderingHints
 import java.awt.geom.AffineTransform
 import java.awt.image.AffineTransformOp
 import java.awt.image.BufferedImage
 import java.nio.ByteBuffer
-import kotlin.Boolean
-import kotlin.Char
-import kotlin.CharSequence
-import kotlin.Float
-import kotlin.Int
-import kotlin.IntArray
 import kotlin.math.max
-import kotlin.use
 
 
 /**
@@ -30,6 +22,7 @@ import kotlin.use
  */
 class Font(
     private val window: Window,
+    fontSize: Int = 48,
     antiAlias: Boolean = true
 ) {
     val glyphs: MutableMap<Char, Glyph> = mutableMapOf()
@@ -39,7 +32,7 @@ class Font(
 
     init {
         // Load Font
-        val font = Font(MONOSPACED, PLAIN, 48)
+        val font = Font("Segoe UI", PLAIN, fontSize)
 
         // Create Bitmap Image
         var imageWidth = 0

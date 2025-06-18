@@ -66,7 +66,7 @@ class DynTextRenderer(private val window: Window, private val font: Font) {
         indices.rewind()
     }
 
-    fun render(projection: Matrix4f, model: Matrix4f) {
+    fun render(projection: Matrix4f = Matrix4f(), model: Matrix4f = Matrix4f()) {
         vao.withBound {
             shaderProgramme.use()
             glBindTexture(GL_TEXTURE_2D, font.texture)

@@ -8,8 +8,8 @@ import org.lwjgl.system.MemoryUtil
 
 class DynTextRenderer(val window: Window, val font: Font) {
     private val shaderProgramme = ShaderProgram(listOf("/2DTexture.vert", "/texture.frag"))
-    private val vao: Int = glGenVertexArrays()
-    private val vbo: Int = glGenBuffers()
+    private val vao: Vao = Vao()
+    private val vbo: Vbo = Vbo()
     private var nVertices: Int = 0
     private val vertices = MemoryUtil.memAllocFloat(4096);
     private val width: Int
@@ -17,14 +17,19 @@ class DynTextRenderer(val window: Window, val font: Font) {
     private val aspect = window.getAspect()
 
     init {
-        bindVAO()
-        glBindBuffer(GL_ARRAY_BUFFER, vbo)
+        vao.bind()
+
+        // Reserve memory
+        vbo.bind()
         GL15.glBufferData(GL_ARRAY_BUFFER, (vertices.capacity() * 4).toLong(), GL_DYNAMIC_DRAW)
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
+        vbo.unbind()
+
+        // Prepare shader
         shaderProgramme.link()
-        specifyAttributeArrayWTexture(shaderProgramme)
+        specifyAttributeArrayWTexture(vbo.ref, shaderProgramme)
         shaderProgramme.use()
-        unbindVAO()
+
+        vao.unbind()
 
         // Start window size
         val (w, h) = window.getCurrentWindowSize()
@@ -33,6 +38,11 @@ class DynTextRenderer(val window: Window, val font: Font) {
     }
 
     fun updateTextTo(text: CharSequence, llX: Float, llY: Float) {
+        // Clear old data
+        vertices.clear()
+        nVertices = 0
+
+        // Create text canvas
         val txtVertices = Mesh.textCanvasVertices(
             text.map { font.glyphs[it]!! },
             llX * aspect, llY,
@@ -40,57 +50,37 @@ class DynTextRenderer(val window: Window, val font: Font) {
             width.toFloat(), height.toFloat()
         )
 
-        vertices.clear()
-        nVertices = 0
-
+        // Store canvas in buffer
         nVertices += txtVertices.size
         vertices.put(txtVertices)
         vertices.rewind()
     }
 
     fun render(projection: Matrix4f, model: Matrix4f) {
-        bindVAO()
+        vao.bind()
         shaderProgramme.use()
         glBindTexture(GL_TEXTURE_2D, font.texture)
+
+        // Update uniforms
         shaderProgramme.addUniform(projection, "projection")
         shaderProgramme.addUniform(model, "model")
-        glBindBuffer(GL_ARRAY_BUFFER, vbo)
+
+        // Upload new data
+        vbo.bind()
         GL15.glBufferSubData(GL_ARRAY_BUFFER, 0, vertices)
+
+        // Draw
         glDrawArrays (GL_TRIANGLES, 0, nVertices)
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-        vertices.clear()
-        nVertices = 0
-        unbindVAO()
+        vbo.unbind()
+
+        vao.unbind()
     }
 
-    private fun specifyAttributeArrayWTexture(shaderProgram: ShaderProgram) {
-        glBindBuffer(GL_ARRAY_BUFFER, vbo)
-        val posAttrib = glGetAttribLocation(shaderProgram.ref, "position")
-        glEnableVertexAttribArray(posAttrib)
-        glVertexAttribPointer(posAttrib, 2, GL_FLOAT, false, 8 * 4, 0)
-
-        val colAttrib = glGetAttribLocation(shaderProgram.ref, "color")
-        glEnableVertexAttribArray(colAttrib)
-        glVertexAttribPointer(colAttrib, 4, GL_FLOAT, false, 8 * 4, 2 * 4)
-
-        val texAttrib = glGetAttribLocation(shaderProgram.ref, "texcoord")
-        glEnableVertexAttribArray(texAttrib)
-        glVertexAttribPointer(texAttrib, 2, GL_FLOAT, false, 8 * 4, 6 * 4)
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-    }
-
-    private fun bindVAO() {
-        glBindVertexArray(vao)
-    }
-
-    private fun unbindVAO() {
-        glBindVertexArray(0)
-    }
 
     fun close() {
         MemoryUtil.memFree(vertices)
         shaderProgramme.close()
-        glDeleteVertexArrays(vao)
-        glDeleteBuffers(vbo)
+        vbo.close()
+        vao.close()
     }
 }

@@ -1,18 +1,16 @@
 package de.uniwuerzburg.omodvisualizer
 
 import crosby.binary.osmosis.OsmosisReader
-import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.GeometryFactory
 import org.locationtech.jts.simplify.DouglasPeuckerSimplifier
 import org.openstreetmap.osmosis.areafilter.v0_6.BoundingBoxFilter
 import org.openstreetmap.osmosis.core.filter.common.IdTrackerType
-import org.poly2tri.Poly2Tri.triangulate
 import org.poly2tri.geometry.polygon.Polygon
 import org.poly2tri.geometry.polygon.PolygonPoint
 import java.awt.Color
 import java.io.File
 import java.io.FileInputStream
-import kotlin.time.measureTimedValue
+import java.nio.file.Files
 
 
 class BackgroundReader {
@@ -33,6 +31,7 @@ class BackgroundReader {
                 Mesh.load(cacheFN)
             } else {
                 val mesh = readOSM(osmFile, minLat, maxLat, minLon, maxLon, transformer)
+                Files.createDirectories(vCacheFile.toPath().parent)
                 mesh.save(cacheFN)
                 mesh
             }

@@ -1,17 +1,13 @@
 package de.uniwuerzburg.omodvisualizer.graphic
 
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
-import org.lwjgl.opengl.GL33.glVertexAttribDivisor
 import org.lwjgl.system.MemoryStack.stackPush
-import org.lwjgl.system.MemoryUtil
 import org.poly2tri.Poly2Tri
 import org.poly2tri.geometry.polygon.Polygon
 import java.awt.Color
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.nio.FloatBuffer
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.min
@@ -25,49 +21,9 @@ class Mesh(
     val ibo: Ibo? = null,
     val indexSize: Int = 0
 ) {
-    private var instVBO: Int = 0
-    private var instFB: FloatBuffer? = null
-    var maxInstances: Int = 1
-
     fun close() {
         vao.close()
         vbo.close()
-    }
-
-    fun prepareInstancedDraw(positions: List<Pair<Float, Float>>) {
-        require(positions.size <= maxInstances)
-
-        // Fill buffer with new instance locations
-        for ((x, y) in positions) {
-            instFB!!.put(x)
-            instFB!!.put(y)
-        }
-        instFB!!.rewind()
-        glBindBuffer(GL_ARRAY_BUFFER, instVBO);
-        GL20.glBufferSubData(GL_ARRAY_BUFFER, 0, instFB!!);
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-    }
-
-    fun cleanUpInstancedDraw() {
-        instFB!!.clear()
-    }
-
-    fun enableInstancing(maxInstances: Int, shaderProgram: ShaderProgram) {
-        if(maxInstances <= 1) {
-            throw IllegalStateException("Don't enable instancing with maximum one object!")
-        }
-        this.maxInstances = maxInstances
-
-        instVBO = glGenBuffers()
-        glBindBuffer(GL_ARRAY_BUFFER, instVBO)
-        instFB = MemoryUtil.memAllocFloat(maxInstances * 2)
-        GL20.glBufferData(GL_ARRAY_BUFFER, (maxInstances * 2 * 4).toLong(), GL_DYNAMIC_DRAW)
-
-        val offAttrib = glGetAttribLocation(shaderProgram.ref, "offset")
-        glEnableVertexAttribArray(offAttrib)
-        glVertexAttribPointer(offAttrib, 2, GL_FLOAT, false, 2 * 4, 0)
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-        glVertexAttribDivisor(offAttrib, 1)
     }
 
     companion object {
@@ -96,14 +52,14 @@ class Mesh(
             var x = 0.5f
             var y = 0f
             for (i in 0..nSegments) {
-                val tx = -y;
-                val ty = x;
+                val tx = -y
+                val ty = x
 
-                x += tx * tangetialFactor;
-                y += ty * tangetialFactor;
+                x += tx * tangetialFactor
+                y += ty * tangetialFactor
 
-                x *= radialFactor;
-                y *= radialFactor;
+                x *= radialFactor
+                y *= radialFactor
 
                 vertices.add(x)
                 vertices.add(y)
@@ -223,14 +179,14 @@ class Mesh(
                 positions.add(listOf(x*r*4+cx, y*r*4+cy))
 
 
-                val tx = -y;
-                val ty = x;
+                val tx = -y
+                val ty = x
 
-                x += tx * tangetialFactor;
-                y += ty * tangetialFactor;
+                x += tx * tangetialFactor
+                y += ty * tangetialFactor
 
-                x *= radialFactor;
-                y *= radialFactor;
+                x *= radialFactor
+                y *= radialFactor
 
                 positions.add(listOf(x*r*4+cx, y*r*4+cy))
             }

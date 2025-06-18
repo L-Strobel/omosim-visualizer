@@ -9,8 +9,8 @@ import java.nio.FloatBuffer
 
 class Renderer(
     private val mesh: Mesh,
-    instances: Int,
-    private val texture: Int?
+    instances: Int = 1,
+    private val texture: Int? = null
 ) {
     private val shaderProgramme = if (texture == null) {
         ShaderProgram(listOf("/2D.vert", "/monochrome.frag"))

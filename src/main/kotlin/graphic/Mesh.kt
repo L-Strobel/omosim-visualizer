@@ -394,83 +394,84 @@ class Mesh(
 
         private fun fromVertices(vertices: FloatArray, drawMode: Int = GL_TRIANGLES): Mesh {
             val vao = Vao()
-            vao.bind()
-            var vbo: Vbo
-            stackPush().use { _ ->
-                val buffer = BufferUtils.createFloatBuffer(vertices.size)
-                buffer.put(vertices)
-                buffer.rewind()
+            val vbo = Vbo()
+            vao.withBound {
+                stackPush().use { _ ->
+                    val buffer = BufferUtils.createFloatBuffer(vertices.size)
+                    buffer.put(vertices)
+                    buffer.rewind()
 
-                vbo = Vbo()
-                vbo.bind()
-                glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW)
-                vbo.unbind()
+                    vbo.withBound {
+                        glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW)
+                    }
+                }
             }
-            vao.unbind()
             return Mesh(vbo, vao, vertices.size, drawMode)
         }
 
         private fun fromVertices(vertices: FloatArray, indices: IntArray, drawMode: Int = GL_TRIANGLES): Mesh {
             val vao = Vao()
-            vao.bind()
-            var vbo: Vbo
-            stackPush().use { _ ->
-                val buffer = BufferUtils.createFloatBuffer(vertices.size)
-                buffer.put(vertices)
-                buffer.rewind()
+            val vbo = Vbo()
+            val ibo = Ibo()
+            vao.withBound {
+                stackPush().use { _ ->
+                    val buffer = BufferUtils.createFloatBuffer(vertices.size)
+                    buffer.put(vertices)
+                    buffer.rewind()
+                    vbo.withBound {
+                        glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW)
+                    }
+                }
+                stackPush().use { _ ->
+                    val buffer = BufferUtils.createIntBuffer(indices.size)
+                    buffer.put(indices)
+                    buffer.rewind()
 
-                vbo = Vbo()
-                vbo.bind()
-                glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW)
-                vbo.unbind()
+                    ibo.withBound {
+                        glBufferData(GL_ELEMENT_ARRAY_BUFFER, buffer, GL_STATIC_DRAW)
+                    }
+                }
             }
-            var ibo: Ibo
-            stackPush().use { _ ->
-                val buffer = BufferUtils.createIntBuffer(indices.size)
-                buffer.put(indices)
-                buffer.rewind()
-
-                ibo = Ibo()
-                ibo.bind()
-                glBufferData(GL_ELEMENT_ARRAY_BUFFER, buffer, GL_STATIC_DRAW)
-                ibo.unbind()
-            }
-            vao.unbind()
             return Mesh(vbo, vao, vertices.size, drawMode, ibo, indices.size)
         }
 
         fun load(fn: String) : Mesh {
             val drawMode: Int = GL_TRIANGLES
-            val vao = Vao()
-            vao.bind()
 
+            // Input sources
             // Vertices
             val fisv = FileInputStream("${fn}_vertices")
             val vBytes = fisv.available()
-
-            val vBuffer = BufferUtils.createByteBuffer(vBytes)
-            val vChannel = fisv.channel
-            vChannel.read(vBuffer)
-            vBuffer.rewind()
-
-            val vbo = Vbo()
-            vbo.bind()
-            glBufferData(GL_ARRAY_BUFFER, vBuffer, GL_STATIC_DRAW)
-            vbo.unbind()
 
             // Index
             val fisi = FileInputStream("${fn}_indices")
             val iBytes = fisi.available()
 
-            val iBuffer = BufferUtils.createByteBuffer(vBytes)
-            val iChannel = fisi.channel
-            iChannel.read(iBuffer)
-            iBuffer.rewind()
-
+            // Load to buffers
+            val vao = Vao()
+            val vbo = Vbo()
             val ibo = Ibo()
-            ibo.bind()
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, iBuffer, GL_STATIC_DRAW)
-            ibo.unbind()
+            vao.withBound {
+                // Vertices
+                val vBuffer = BufferUtils.createByteBuffer(vBytes)
+                val vChannel = fisv.channel
+                vChannel.read(vBuffer)
+                vBuffer.rewind()
+
+                vbo.withBound {
+                    glBufferData(GL_ARRAY_BUFFER, vBuffer, GL_STATIC_DRAW)
+                }
+
+                // Index
+                val iBuffer = BufferUtils.createByteBuffer(vBytes)
+                val iChannel = fisi.channel
+                iChannel.read(iBuffer)
+                iBuffer.rewind()
+
+                ibo.withBound {
+                    glBufferData(GL_ELEMENT_ARRAY_BUFFER, iBuffer, GL_STATIC_DRAW)
+                }
+            }
 
             glBindVertexArray(0)
             return Mesh(vbo, vao, (vBytes / 4), drawMode, ibo, iBytes / 4)
@@ -482,9 +483,9 @@ class Mesh(
 
         stackPush().use { _ ->
             val buffer = BufferUtils.createByteBuffer(this.size * 4)
-            vbo.bind()
-            glGetBufferSubData(GL_ARRAY_BUFFER, 0, buffer)
-            vbo.unbind()
+            vbo.withBound {
+                glGetBufferSubData(GL_ARRAY_BUFFER, 0, buffer)
+            }
 
             println("First saved")
             println(buffer.asFloatBuffer().get(0))
@@ -499,9 +500,9 @@ class Mesh(
 
         stackPush().use { _ ->
             val buffer = BufferUtils.createByteBuffer(this.indexSize * 4)
-            ibo.bind()
-            glGetBufferSubData(GL_ARRAY_BUFFER, 0, buffer)
-            ibo.unbind()
+            ibo.withBound {
+                glGetBufferSubData(GL_ARRAY_BUFFER, 0, buffer)
+            }
 
             val fos = FileOutputStream("${fn}_indices")
             val channel = fos.channel

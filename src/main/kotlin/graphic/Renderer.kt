@@ -17,66 +17,63 @@ class Renderer(
     }
 
     init {
-        mesh.vao.bind()
-        shaderProgramme.link()
-        if (texture != null) {
-            specifyAttributeArrayWTexture(mesh.vbo, shaderProgramme)
-            shaderProgramme.setTextureUniform()
-        } else {
-            specifyAttributeArray(mesh.vbo, shaderProgramme)
-        }
+        mesh.vao.withBound {
+            shaderProgramme.link()
+            if (texture != null) {
+                specifyAttributeArrayWTexture(mesh.vbo, shaderProgramme)
+                shaderProgramme.setTextureUniform()
+            } else {
+                specifyAttributeArray(mesh.vbo, shaderProgramme)
+            }
 
-        if (instances > 1) {
-            mesh.enableInstancing(instances, shaderProgramme)
+            if (instances > 1) {
+                mesh.enableInstancing(instances, shaderProgramme)
+            }
+            shaderProgramme.use()
         }
-        shaderProgramme.use()
-        mesh.vao.unbind()
     }
 
     fun render(projection: Matrix4f, model: Matrix4f) {
         shaderProgramme.use()
-        mesh.vao.bind()
+        mesh.vao.withBound {
+            if (texture != null) {
+                glBindTexture(GL_TEXTURE_2D, texture)
+            }
 
-        if (texture != null) {
-            glBindTexture(GL_TEXTURE_2D, texture)
+            shaderProgramme.addUniform(projection, "projection")
+            shaderProgramme.addUniform(model, "model")
+            mesh.ibo!!.withBound {
+                glDrawElements(GL_TRIANGLES, mesh.indexSize, GL_UNSIGNED_INT,0)
+            }
         }
-
-        shaderProgramme.addUniform(projection, "projection")
-        shaderProgramme.addUniform(model, "model")
-        mesh.ibo!!.bind()
-        glDrawElements(GL_TRIANGLES, mesh.indexSize, GL_UNSIGNED_INT,0)
-        mesh.ibo!!.unbind()
-        mesh.vao.unbind()
     }
 
     fun renderBasic(projection: Matrix4f, model: Matrix4f) {
         shaderProgramme.use()
-        mesh.vao.bind()
+        mesh.vao.withBound {
+            if (texture != null) {
+                glBindTexture(GL_TEXTURE_2D, texture)
+            }
 
-        if (texture != null) {
-            glBindTexture(GL_TEXTURE_2D, texture)
+            shaderProgramme.addUniform(projection, "projection")
+            shaderProgramme.addUniform(model, "model")
+            glDrawArrays (mesh.drawMode, 0, mesh.size)
         }
-
-        shaderProgramme.addUniform(projection, "projection")
-        shaderProgramme.addUniform(model, "model")
-        glDrawArrays (mesh.drawMode, 0, mesh.size)
-        mesh.vao.unbind()
     }
 
     fun renderInstanced(projection: Matrix4f, model: Matrix4f, positions: List<Pair<Float, Float>>) {
         shaderProgramme.use()
-        mesh.vao.bind()
+        mesh.vao.withBound {
+            if (texture != null) {
+                glBindTexture(GL_TEXTURE_2D, texture)
+            }
 
-        if (texture != null) {
-            glBindTexture(GL_TEXTURE_2D, texture)
+            shaderProgramme.addUniform(projection, "projection")
+            shaderProgramme.addUniform(model, "model")
+            mesh.prepareInstancedDraw(positions)
+            glDrawArraysInstanced (mesh.drawMode, 0, mesh.size, positions.size)
+            mesh.cleanUpInstancedDraw()
         }
-
-        shaderProgramme.addUniform(projection, "projection")
-        shaderProgramme.addUniform(model, "model")
-        mesh.prepareInstancedDraw(positions)
-        glDrawArraysInstanced (mesh.drawMode, 0, mesh.size, positions.size)
-        mesh.cleanUpInstancedDraw()
-        mesh.vao.unbind()
     }
 
     fun close() {

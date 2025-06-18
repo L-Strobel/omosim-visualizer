@@ -17,19 +17,17 @@ class DynTextRenderer(private val window: Window, private val font: Font) {
     private val aspect = window.getAspect()
 
     init {
-        vao.bind()
+        vao.withBound {
+            // Reserve memory
+            vbo.withBound {
+                GL15.glBufferData(GL_ARRAY_BUFFER, (vertices.capacity() * 4).toLong(), GL_DYNAMIC_DRAW)
+            }
 
-        // Reserve memory
-        vbo.bind()
-        GL15.glBufferData(GL_ARRAY_BUFFER, (vertices.capacity() * 4).toLong(), GL_DYNAMIC_DRAW)
-        vbo.unbind()
-
-        // Prepare shader
-        shaderProgramme.link()
-        specifyAttributeArrayWTexture(vbo, shaderProgramme)
-        shaderProgramme.use()
-
-        vao.unbind()
+            // Prepare shader
+            shaderProgramme.link()
+            specifyAttributeArrayWTexture(vbo, shaderProgramme)
+            shaderProgramme.use()
+        }
 
         // Start window size
         val (w, h) = window.getCurrentWindowSize()
@@ -57,25 +55,20 @@ class DynTextRenderer(private val window: Window, private val font: Font) {
     }
 
     fun render(projection: Matrix4f, model: Matrix4f) {
-        vao.bind()
-        shaderProgramme.use()
-        glBindTexture(GL_TEXTURE_2D, font.texture)
+        vao.withBound {
+            shaderProgramme.use()
+            glBindTexture(GL_TEXTURE_2D, font.texture)
 
-        // Update uniforms
-        shaderProgramme.addUniform(projection, "projection")
-        shaderProgramme.addUniform(model, "model")
+            // Update uniforms
+            shaderProgramme.addUniform(projection, "projection")
+            shaderProgramme.addUniform(model, "model")
 
-        // Upload new data
-        vbo.bind()
-        GL15.glBufferSubData(GL_ARRAY_BUFFER, 0, vertices)
-
-        // Draw
-        glDrawArrays (GL_TRIANGLES, 0, nVertices)
-        vbo.unbind()
-
-        vao.unbind()
+            vbo.withBound {
+                GL15.glBufferSubData(GL_ARRAY_BUFFER, 0, vertices) // Upload new data
+                glDrawArrays (GL_TRIANGLES, 0, nVertices) // Draw
+            }
+        }
     }
-
 
     fun close() {
         MemoryUtil.memFree(vertices)

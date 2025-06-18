@@ -5,15 +5,24 @@ import org.lwjgl.opengl.GL30.*
 class Vao {
     private val ref: Int = glGenVertexArrays()
 
-    fun bind() {
+    private fun bind() {
         glBindVertexArray(ref)
     }
 
-    fun unbind() {
+    private fun unbind() {
         glBindVertexArray(0)
     }
 
     fun close() {
         glDeleteVertexArrays(ref)
+    }
+
+    /**
+     * Do the given action with the buffer bound.
+     */
+    fun withBound (action: () -> Unit) {
+        bind()
+        action()
+        unbind()
     }
 }

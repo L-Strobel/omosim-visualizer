@@ -110,7 +110,7 @@ class UI(
         }
 
         val time = String.format("Day %01d %02d:%02d", (simTime / (24*60) + 1).toInt(), (simTime / 60 % 24).toInt(), (simTime % 60).toInt())
-        clock.updateTextTo(time, -1f + 0.15f*aspect, -0.6f)
+        clock.updateTextTo(time, -1f + 0.15f, -0.6f)
         clock.render(Matrix4f(), Matrix4f())
     }
 

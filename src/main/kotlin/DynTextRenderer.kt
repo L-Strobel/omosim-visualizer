@@ -1,10 +1,8 @@
 package de.uniwuerzburg.omodvisualizer
 
-import org.joml.*
+import org.joml.Matrix4f
 import org.lwjgl.opengl.GL15
-import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
-import org.lwjgl.opengl.GL31.glDrawArraysInstanced
 import org.lwjgl.system.MemoryUtil
 
 class DynTextRenderer(val window: Window, val font: Font) {
@@ -13,6 +11,9 @@ class DynTextRenderer(val window: Window, val font: Font) {
     private val vbo: Int = glGenBuffers()
     private var nVertices: Int = 0
     private val vertices = MemoryUtil.memAllocFloat(4096);
+    private val width: Int
+    private val height: Int
+    private val aspect = window.getAspect()
 
     init {
         bindVAO()
@@ -23,14 +24,17 @@ class DynTextRenderer(val window: Window, val font: Font) {
         specifyAttributeArrayWTexture(shaderProgramme)
         shaderProgramme.use()
         unbindVAO()
+
+        // Start window size
+        val (w, h) = window.getCurrentWindowSize()
+        width = w
+        height = h
     }
 
     fun updateTextTo(text: CharSequence, llX: Float, llY: Float) {
-        val (width, height) = window.getCurrentWindowSize()
-
         val txtVertices = Mesh.textCanvasVertices(
             text.map { font.glyphs[it]!! },
-            llX, llY,
+            llX * aspect, llY,
             font.texWidth.toFloat(), font.texHeight.toFloat(),
             width.toFloat(), height.toFloat()
         )
@@ -41,16 +45,12 @@ class DynTextRenderer(val window: Window, val font: Font) {
         nVertices += txtVertices.size
         vertices.put(txtVertices)
         vertices.rewind()
-        /*bindVAO()
-        glBindBuffer(GL_ARRAY_BUFFER, vbo)
-        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-        unbindVAO()*/
     }
 
     fun render(projection: Matrix4f, model: Matrix4f) {
         bindVAO()
         shaderProgramme.use()
+        glBindTexture(GL_TEXTURE_2D, font.texture)
         shaderProgramme.addUniform(projection, "projection")
         shaderProgramme.addUniform(model, "model")
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
@@ -62,7 +62,7 @@ class DynTextRenderer(val window: Window, val font: Font) {
         unbindVAO()
     }
 
-    fun specifyAttributeArrayWTexture(shaderProgram: ShaderProgram) {
+    private fun specifyAttributeArrayWTexture(shaderProgram: ShaderProgram) {
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
         val posAttrib = glGetAttribLocation(shaderProgram.ref, "position")
         glEnableVertexAttribArray(posAttrib)

@@ -17,7 +17,7 @@ class Renderer(
     }
 
     init {
-        bindVAO()
+        mesh.vao.bind()
         shaderProgramme.link()
         if (texture != null) {
             specifyAttributeArrayWTexture(mesh.vbo, shaderProgramme)
@@ -30,12 +30,12 @@ class Renderer(
             mesh.enableInstancing(instances, shaderProgramme)
         }
         shaderProgramme.use()
-        unbindVAO()
+        mesh.vao.unbind()
     }
 
     fun render(projection: Matrix4f, model: Matrix4f) {
         shaderProgramme.use()
-        bindVAO()
+        mesh.vao.bind()
 
         if (texture != null) {
             glBindTexture(GL_TEXTURE_2D, texture)
@@ -43,15 +43,15 @@ class Renderer(
 
         shaderProgramme.addUniform(projection, "projection")
         shaderProgramme.addUniform(model, "model")
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.vboIdx!!)
+        mesh.ibo!!.bind()
         glDrawElements(GL_TRIANGLES, mesh.indexSize, GL_UNSIGNED_INT,0)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
-        unbindVAO()
+        mesh.ibo!!.unbind()
+        mesh.vao.unbind()
     }
 
     fun renderBasic(projection: Matrix4f, model: Matrix4f) {
         shaderProgramme.use()
-        bindVAO()
+        mesh.vao.bind()
 
         if (texture != null) {
             glBindTexture(GL_TEXTURE_2D, texture)
@@ -60,12 +60,12 @@ class Renderer(
         shaderProgramme.addUniform(projection, "projection")
         shaderProgramme.addUniform(model, "model")
         glDrawArrays (mesh.drawMode, 0, mesh.size)
-        unbindVAO()
+        mesh.vao.unbind()
     }
 
     fun renderInstanced(projection: Matrix4f, model: Matrix4f, positions: List<Pair<Float, Float>>) {
         shaderProgramme.use()
-        bindVAO()
+        mesh.vao.bind()
 
         if (texture != null) {
             glBindTexture(GL_TEXTURE_2D, texture)
@@ -76,15 +76,7 @@ class Renderer(
         mesh.prepareInstancedDraw(positions)
         glDrawArraysInstanced (mesh.drawMode, 0, mesh.size, positions.size)
         mesh.cleanUpInstancedDraw()
-        unbindVAO()
-    }
-
-    private fun bindVAO() {
-        glBindVertexArray(mesh.vao)
-    }
-
-    private fun unbindVAO() {
-        glBindVertexArray(0)
+        mesh.vao.unbind()
     }
 
     fun close() {

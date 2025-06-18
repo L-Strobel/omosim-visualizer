@@ -6,7 +6,7 @@ import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.system.MemoryUtil
 
-class DynTextRenderer(val window: Window, val font: Font) {
+class DynTextRenderer(private val window: Window, private val font: Font) {
     private val shaderProgramme = ShaderProgram(listOf("/2DTexture.vert", "/texture.frag"))
     private val vao: Vao = Vao()
     private val vbo: Vbo = Vbo()
@@ -26,7 +26,7 @@ class DynTextRenderer(val window: Window, val font: Font) {
 
         // Prepare shader
         shaderProgramme.link()
-        specifyAttributeArrayWTexture(vbo.ref, shaderProgramme)
+        specifyAttributeArrayWTexture(vbo, shaderProgramme)
         shaderProgramme.use()
 
         vao.unbind()

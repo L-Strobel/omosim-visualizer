@@ -35,7 +35,7 @@ class DynTextRenderer(val window: Window, val font: Font) {
         val txtVertices = Mesh.textCanvasVertices(
             text.map { font.glyphs[it]!! },
             llX * aspect, llY,
-            font.texWidth.toFloat(), font.texHeight.toFloat(),
+            font.textureWidth.toFloat(), font.textureHeight.toFloat(),
             width.toFloat(), height.toFloat()
         )
 

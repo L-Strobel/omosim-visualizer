@@ -1,11 +1,8 @@
 package de.uniwuerzburg.omodvisualizer
 
-import org.joml.Matrix4f
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.system.MemoryStack.stackPush
-import org.lwjgl.system.MemoryUtil
 import java.awt.Color
 import java.awt.Font
 import java.awt.Font.MONOSPACED
@@ -16,7 +13,6 @@ import java.awt.image.AffineTransformOp
 import java.awt.image.BufferedImage
 import java.lang.String
 import java.nio.ByteBuffer
-import java.nio.FloatBuffer
 import kotlin.Boolean
 import kotlin.Char
 import kotlin.CharSequence
@@ -27,59 +23,26 @@ import kotlin.math.max
 import kotlin.use
 
 
-class Glyph(val width: Int, val height: Int, val x: Int, val y: Int)
-
+/**
+ * Bitmap for text rendering.
+ *
+ * Mostly taken from LWJGL tutorial by SilverTiger.
+ */
 class Font(
-    val window: Window
+    private val window: Window
 ) {
     val glyphs: MutableMap<Char, Glyph> = mutableMapOf()
-    val fontHeight: Int
     val texture: Int
-    val texWidth: Int
-    val texHeight: Int
-    /*val vao: Int
-    val vbo: Int
-    val shaderProgramme = ShaderProgram(listOf("/2DTexture.vert", "/texture.frag"))
-    val vertices: FloatBuffer
-    var numVertices: Int = 0
-    val texWidth: Int
-    val texHeight: Int*/
+    val textureWidth: Int
+    val textureHeight: Int
 
     init {
-        /*
-        vao = glGenVertexArrays()
-        glBindVertexArray(vao)
-        vbo = glGenBuffers()
-        glBindBuffer(GL_ARRAY_BUFFER, vbo)
-        vertices = MemoryUtil.memAllocFloat(4096);
-        val size = (vertices.capacity() * java.lang.Float.BYTES).toLong()
-        glBufferData(GL_ARRAY_BUFFER, size, GL_DYNAMIC_DRAW)
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-
-        shaderProgramme.link()
-        shaderProgramme.use()
-
-        glBindBuffer(GL_ARRAY_BUFFER, vbo)
-        val posAttrib = glGetAttribLocation(shaderProgramme.ref, "position")
-        glEnableVertexAttribArray(posAttrib)
-        glVertexAttribPointer(posAttrib, 2, GL_FLOAT, false, 7 * 4, 0)
-
-        val colAttrib = glGetAttribLocation(shaderProgramme.ref, "color")
-        glEnableVertexAttribArray(colAttrib)
-        glVertexAttribPointer(colAttrib, 3, GL_FLOAT, false, 7 * 4, 2 * 4)
-
-        val texAttrib = glGetAttribLocation(shaderProgramme.ref, "texcoord")
-        glEnableVertexAttribArray(texAttrib)
-        glVertexAttribPointer(texAttrib, 2, GL_FLOAT, false, 7 * 4, 5 * 4)
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-
-        glBindVertexArray(0)
-        */
+        // Load Font
         val font = Font(MONOSPACED, PLAIN, 48)
 
+        // Create Bitmap Image
         var imageWidth = 0
         var imageHeight = 0
-
         for (i in 32..255) {
             if (i == 127) {
                 continue
@@ -90,12 +53,10 @@ class Font(
             imageWidth += ch.width
             imageHeight = max(imageHeight.toDouble(), ch.height.toDouble()).toInt()
         }
-
-        fontHeight = imageHeight
-
         var image = BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB)
         val g = image.createGraphics()
 
+        // Create glyphs
         var x = 0
         for (i in 32..255) {
             if (i == 127) {
@@ -113,25 +74,23 @@ class Font(
             glyphs[c] = ch
         }
 
+        // Create buffer of pixel data
         val transform = AffineTransform.getScaleInstance(1.0, -1.0)
         transform.translate(0.0, (-image.height).toDouble())
         val operation = AffineTransformOp(transform, AffineTransformOp.TYPE_NEAREST_NEIGHBOR)
         image = operation.filter(image, null)
 
-        val width = image.width
-        val height = image.height
-
-        val pixels = IntArray(width * height)
-        image.getRGB(0, 0, width, height, pixels, 0, width)
+        val pixels = IntArray(image.width * image.height)
+        image.getRGB(0, 0, image.width, image.height, pixels, 0, image.width)
 
         val buffer: ByteBuffer
-        stackPush().use { stack ->
-            buffer = BufferUtils.createByteBuffer(width * height * 4)
+        stackPush().use {
+            buffer = BufferUtils.createByteBuffer(image.width * image.height * 4)
 
-            for (y in 0 until height) {
-                for (x in 0 until width) {
+            for (y in 0 until image.height) {
+                for (x in 0 until image.width) {
                     /* Pixel as RGBA: 0xAARRGGBB */
-                    val pixel = pixels[y * width + x]
+                    val pixel = pixels[y * image.width + x]
 
                     /* Red component 0xAARRGGBB >> (4 * 4) = 0x0000AARR */
                     buffer.put(((pixel shr 16) and 0xFF).toByte())
@@ -147,11 +106,7 @@ class Font(
                 }
             }
         }
-        /* Do not forget to flip the buffer! */
         buffer.flip()
-
-        texWidth = imageWidth
-        texHeight = imageHeight
 
         // Create Texture
         val texture = glGenTextures()
@@ -163,10 +118,13 @@ class Font(
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer!!)
         glGenerateMipmap(GL_TEXTURE_2D);
 
+        // Save texture
         this.texture = texture
+        textureWidth = image.width
+        textureHeight = image.height
     }
 
-    fun createCharImage(font: Font, c: Char, antiAlias: Boolean) : BufferedImage {
+    private fun createCharImage(font: Font, c: Char, antiAlias: Boolean) : BufferedImage {
         var image = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB)
         var g = image.createGraphics()
         if (antiAlias) {
@@ -191,56 +149,16 @@ class Font(
         return image
     }
 
+    /**
+     * Write text to a location on screen.
+     */
     fun staticTextMesh(text: CharSequence, llX: Float, llY: Float) : Mesh {
         val (width, height) = window.getCurrentWindowSize()
         return Mesh.textCanvas(
-            text.map { glyphs[it]!! },
+            text.map { glyphs[it] ?: glyphs['?']!! },
             llX, llY,
-            texWidth.toFloat(), texHeight.toFloat(),
+            textureWidth.toFloat(), textureHeight.toFloat(),
             width.toFloat(), height.toFloat()
         )
     }
-
-    /*fun drawText(text: CharSequence, x: Float, y: Float, projection: Matrix4f, model: Matrix4f) {
-        val lines = 1
-        val textHeight: Int = lines * fontHeight
-
-        var drawX: Float = x
-        var drawY: Float = y
-        if (textHeight > fontHeight) {
-            drawY += (textHeight - fontHeight).toFloat()
-        }
-
-        glBindTexture(GL_TEXTURE_2D, this.texture)
-
-        for (i in 0 until text.length) {
-            val ch: Char = text.get(i)
-            if (ch == '\n') {
-                /* Line feed, set x and y to draw at the next line */
-                drawY -= fontHeight.toFloat()
-                drawX = x
-                continue
-            }
-            if (ch == '\r') {
-                /* Carriage return, just skip it */
-                continue
-            }
-            val g = glyphs[ch]
-            drawTextureRegion(drawX, drawY, g!!.x.toFloat(), g.y.toFloat(), g.width.toFloat(), g.height.toFloat(), Color.WHITE)
-            drawX += g.width.toFloat()
-        }
-
-
-        shaderProgramme.use()
-        glBindVertexArray(vao)
-        glBindBuffer(GL_ARRAY_BUFFER, vbo)
-        glBufferSubData(GL_ARRAY_BUFFER, 0, vertices);
-        shaderProgramme.addUniform(projection, "projection")
-        shaderProgramme.addUniform(model, "model")
-        glDrawArrays (GL_TRIANGLES, 0, numVertices)
-        vertices.clear();
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-        glBindVertexArray(0)
-        numVertices = 0
-    }*/
 }

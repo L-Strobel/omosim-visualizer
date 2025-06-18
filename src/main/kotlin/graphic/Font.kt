@@ -12,7 +12,6 @@ import java.awt.RenderingHints
 import java.awt.geom.AffineTransform
 import java.awt.image.AffineTransformOp
 import java.awt.image.BufferedImage
-import java.lang.String
 import java.nio.ByteBuffer
 import kotlin.Boolean
 import kotlin.Char
@@ -30,7 +29,8 @@ import kotlin.use
  * Mostly taken from LWJGL tutorial by SilverTiger.
  */
 class Font(
-    private val window: Window
+    private val window: Window,
+    antiAlias: Boolean = true
 ) {
     val glyphs: MutableMap<Char, Glyph> = mutableMapOf()
     val texture: Int
@@ -49,7 +49,7 @@ class Font(
                 continue
             }
             val c = i.toChar()
-            val ch: BufferedImage = createCharImage(font, c, true)
+            val ch: BufferedImage = createCharImage(font, c, antiAlias)
 
             imageWidth += ch.width
             imageHeight = max(imageHeight.toDouble(), ch.height.toDouble()).toInt()
@@ -58,7 +58,7 @@ class Font(
         val g = image.createGraphics()
 
         // Create glyphs
-        var x = 0
+        var xOffset = 0
         for (i in 32..255) {
             if (i == 127) {
                 continue
@@ -69,9 +69,9 @@ class Font(
             val charWidth = charImage.width
             val charHeight = charImage.height
 
-            val ch = Glyph(charWidth, charHeight, x, image.height - charHeight)
-            g.drawImage(charImage, x, 0, null)
-            x += ch.width
+            val ch = Glyph(charWidth, charHeight, xOffset, image.height - charHeight)
+            g.drawImage(charImage, xOffset, 0, null)
+            xOffset += ch.width
             glyphs[c] = ch
         }
 
@@ -116,8 +116,8 @@ class Font(
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer!!)
-        glGenerateMipmap(GL_TEXTURE_2D);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+        glGenerateMipmap(GL_TEXTURE_2D)
 
         // Save texture
         this.texture = texture
@@ -131,7 +131,7 @@ class Font(
         if (antiAlias) {
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         }
-        g.setFont(font)
+        g.font = font
         val metrics = g.fontMetrics
         g.dispose()
 
@@ -143,9 +143,9 @@ class Font(
         if (antiAlias) {
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         }
-        g.setFont(font)
+        g.font = font
         g.paint = Color.WHITE
-        g.drawString(String.valueOf(c), 0, metrics.ascent)
+        g.drawString(c.toString(), 0, metrics.ascent)
         g.dispose()
         return image
     }

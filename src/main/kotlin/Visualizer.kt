@@ -59,10 +59,10 @@ class Visualizer {
                 else -> Color.YELLOW
             }
             val mesh = Mesh.basicCircle(20, color)
-            agentRenderers[activity] = Renderer(mesh, vAgents.size)
+            agentRenderers[activity] = Renderer(mesh, vAgents.size, null)
         }
         val mesh = Mesh.basicCircle(20, Color.GREEN)
-        agentRenderers[null] = Renderer(mesh, vAgents.size)
+        agentRenderers[null] = Renderer(mesh, vAgents.size, null)
 
 
         // Read background data
@@ -74,7 +74,7 @@ class Visualizer {
             bBox[3].toDouble() + 0.1,
             transformer
         )
-        bgRenderer = Renderer(bgMesh, 1)
+        bgRenderer = Renderer(bgMesh, 1, null)
 
         Controls.registerControls(window)
 

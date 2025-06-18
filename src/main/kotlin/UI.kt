@@ -24,7 +24,7 @@ class UI(
             Mesh.roundedCornerRectangle(
                 Color(0f, 0f, 0f, 0.7f),
                 0.2, 20, 3f, 1f
-            ), 1
+            ), 1, null
         )
 
         clock = DynTextRenderer(window, font)
@@ -42,11 +42,11 @@ class UI(
             }
             val borderRenderer = Renderer(
                 Mesh.roundedCornerRectangle(Color.BLACK, 0.2, 20, 1f, 1f),
-                1
+                1, null
             )
             val renderer = Renderer(
                 Mesh.roundedCornerRectangle(color, 0.2, 20, 1f, 1f),
-                1
+                1, null
             )
             val button = Button(
                 offset, 0.2f, 0.3f,
@@ -55,20 +55,20 @@ class UI(
                 borderRenderer
             )
             val txt = font.staticTextMesh(activity.toString(), -1f + (offset - 0.05f) * aspect, -0.725f)
-            staticTexts.add(Renderer(txt, 1, "", true))
+            staticTexts.add(Renderer(txt, 1, font.texture))
             buttons[activity] = button
             offset += 1f * s
         }
 
         val txt = font.staticTextMesh("Driving", -1f + (offset - 0.05f) * aspect, -0.725f)
-        staticTexts.add(Renderer(txt, 1, "", true))
+        staticTexts.add(Renderer(txt, 1, font.texture))
         val renderer = Renderer(
             Mesh.roundedCornerRectangle(Color.GREEN, 0.2, 20, 1f, 1f),
-            1
+            1, null
         )
         val borderRenderer = Renderer(
             Mesh.roundedCornerRectangle(Color.BLACK, 0.2, 20, 1f, 1f),
-            1
+            1, null
         )
         val button = Button(
             offset, 0.2f, 0.3f,

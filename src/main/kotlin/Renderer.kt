@@ -8,10 +8,9 @@ import org.lwjgl.opengl.GL31.glDrawArraysInstanced
 class Renderer(
     private val mesh: Mesh,
     instances: Int,
-    private val textureImgFN: String? = null,
-    val testFont: Boolean = false
+    private val texture: Int?
 ) {
-    private val shaderProgramme = if (textureImgFN == null ) {
+    private val shaderProgramme = if (texture == null) {
         ShaderProgram(listOf("/2D.vert", "/monochrome.frag"))
     } else {
         ShaderProgram(listOf("/2DTexture.vert", "/texture.frag"))
@@ -20,15 +19,11 @@ class Renderer(
     init {
         bindVAO()
         shaderProgramme.link()
-        if (testFont) {
+        if (texture != null) {
             mesh.specifyAttributeArrayWTexture(shaderProgramme)
             shaderProgramme.setTextureUniform()
-        } else if (textureImgFN == null) {
-            mesh.specifyAttributeArray(shaderProgramme)
         } else {
-            mesh.specifyAttributeArrayWTexture(shaderProgramme)
-            Texture.loadTexture(textureImgFN)
-            shaderProgramme.setTextureUniform()
+            mesh.specifyAttributeArray(shaderProgramme)
         }
 
         if (instances > 1) {
@@ -39,8 +34,13 @@ class Renderer(
     }
 
     fun render(projection: Matrix4f, model: Matrix4f) {
-        shaderProgramme.use() // TODO Bind texture here? Maybe if I have more than one
+        shaderProgramme.use()
         bindVAO()
+
+        if (texture != null) {
+            glBindTexture(GL_TEXTURE_2D, texture)
+        }
+
         shaderProgramme.addUniform(projection, "projection")
         shaderProgramme.addUniform(model, "model")
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.vboIdx!!)
@@ -52,6 +52,11 @@ class Renderer(
     fun renderBasic(projection: Matrix4f, model: Matrix4f) {
         shaderProgramme.use()
         bindVAO()
+
+        if (texture != null) {
+            glBindTexture(GL_TEXTURE_2D, texture)
+        }
+
         shaderProgramme.addUniform(projection, "projection")
         shaderProgramme.addUniform(model, "model")
         glDrawArrays (mesh.drawMode, 0, mesh.size)
@@ -61,6 +66,11 @@ class Renderer(
     fun renderInstanced(projection: Matrix4f, model: Matrix4f, positions: List<Pair<Float, Float>>) {
         shaderProgramme.use()
         bindVAO()
+
+        if (texture != null) {
+            glBindTexture(GL_TEXTURE_2D, texture)
+        }
+
         shaderProgramme.addUniform(projection, "projection")
         shaderProgramme.addUniform(model, "model")
         mesh.prepareInstancedDraw(positions)

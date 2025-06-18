@@ -1,6 +1,12 @@
 package de.uniwuerzburg.omodvisualizer
 
-import de.uniwuerzburg.omod.io.json.*
+import de.uniwuerzburg.omod.io.json.OutputActivity
+import de.uniwuerzburg.omod.io.json.OutputEntry
+import de.uniwuerzburg.omod.io.json.OutputTrip
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
@@ -47,7 +53,9 @@ class VisualAgent (
                 Triple<List<VisualAgent>, CoordTransformer, Array<Float>>
         {
             println("Start reading agent data...")
+            print("Read Json...\r")
             val omodData = Json.decodeFromStream<List<OutputEntry>>(file.inputStream())
+            println("Read Json... Done!")
 
             // Scale coordinates to display coordinates
             var minLat = Float.MAX_VALUE
@@ -64,7 +72,14 @@ class VisualAgent (
             val centerLatLon = Coordinate(minLat + (maxLat - minLat) / 2.0, minLon + (maxLon - minLon) / 2.0)
             val transformer = CoordTransformer(windowHeightMeters, aspect, centerLatLon)
 
-            val vAgents = omodData.map{ getVAgent(it, transformer) }
+            print("Interpolating trips...\r")
+            val vAgents: List<VisualAgent>
+            runBlocking(Dispatchers.Default) {
+               val vAgentsDef = omodData.map{ async { getVAgent(it, transformer) } } // In parallel
+               vAgents = vAgentsDef.awaitAll()
+            }
+            println("Interpolating trips... Done!")
+
             println("Agent data read!")
             return Triple(vAgents, transformer, arrayOf(minLat, maxLat, minLon, maxLon))
         }

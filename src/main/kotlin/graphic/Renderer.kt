@@ -20,10 +20,10 @@ class Renderer(
         bindVAO()
         shaderProgramme.link()
         if (texture != null) {
-            mesh.specifyAttributeArrayWTexture(shaderProgramme)
+            specifyAttributeArrayWTexture(mesh.vbo, shaderProgramme)
             shaderProgramme.setTextureUniform()
         } else {
-            mesh.specifyAttributeArray(shaderProgramme)
+            specifyAttributeArray(mesh.vbo, shaderProgramme)
         }
 
         if (instances > 1) {

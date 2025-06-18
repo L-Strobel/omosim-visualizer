@@ -6,6 +6,11 @@ import org.lwjgl.system.MemoryStack.stackPush
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
+/**
+ * Mesh. Take VAO from the associated renderer. Should be part of a Renderer.
+ *
+ * Only reason it is a separate class is because that made it easier for saving and loading.
+ */
 class Mesh(
     val drawMode: Int,
     var vbo: Vbo,

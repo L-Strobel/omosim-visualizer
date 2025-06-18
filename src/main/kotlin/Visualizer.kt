@@ -1,9 +1,7 @@
 package de.uniwuerzburg.omodvisualizer
 
 import de.uniwuerzburg.omod.core.models.ActivityType
-import de.uniwuerzburg.omodvisualizer.graphic.Mesh
-import de.uniwuerzburg.omodvisualizer.graphic.Renderer
-import de.uniwuerzburg.omodvisualizer.graphic.addCircleMesh
+import de.uniwuerzburg.omodvisualizer.graphic.*
 import de.uniwuerzburg.omodvisualizer.input.BackgroundReader
 import de.uniwuerzburg.omodvisualizer.input.CoordTransformer
 import de.uniwuerzburg.omodvisualizer.input.VisualAgent
@@ -29,6 +27,7 @@ class Visualizer {
     private lateinit var transformer: CoordTransformer
     private lateinit var bBox: Array<Float>
     private lateinit var ui: UI
+    private lateinit var tst: Renderer
 
     fun run() {
         init()
@@ -64,9 +63,9 @@ class Visualizer {
                 ActivityType.WORK -> Color.RED
                 else -> Color.YELLOW
             }
-            agentRenderers[activity] = Renderer(instances = vAgents.size).addCircleMesh(20, color)
+            agentRenderers[activity] = Renderer(instances = vAgents.size).addCircleMesh(color)
         }
-        agentRenderers[null] = Renderer(instances = vAgents.size).addCircleMesh(20,  Color.GREEN)
+        agentRenderers[null] = Renderer(instances = vAgents.size).addCircleMesh(Color.GREEN)
 
 
         // Read background data
@@ -79,6 +78,7 @@ class Visualizer {
             transformer
         )
 
+        tst = Renderer().addRoundedCornerRectangle(Color(1f, 0f, 0f, 0.5f))
         Controls.registerControls(window)
 
         ui = UI(window, -1f + 0.65f*aspect, -1f + 0.3f, 0.15f)
@@ -138,6 +138,8 @@ class Visualizer {
         }
 
         ui.render(simTime)
+        tst.render(model = Matrix4f()
+            .scale(0.5f * aspect, 0.5f, 1f))
 
         glfwSwapBuffers(window.ref) // swap the color buffers
         glfwPollEvents() // Poll for window events, like keystrokes.

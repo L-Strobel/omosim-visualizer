@@ -22,7 +22,7 @@ class UI(
         val font = Font(window)
 
         background = Renderer()
-            .addRoundedCornerRectangle(Color(0f, 0f, 0f, 0.7f), 0.2, 20, 3f, 1f)
+            .addRoundedCornerRectangle(Color(0f, 0f, 0f, 0.7f), width = 3f, height =  1f)
 
         clock = DynTextRenderer(window, font)
 
@@ -37,8 +37,8 @@ class UI(
                 ActivityType.WORK -> Color.RED
                 else -> Color.YELLOW
             }
-            val borderRenderer = Renderer().addRoundedCornerRectangle(Color.BLACK, 0.2, 20, 1f, 1f)
-            val renderer = Renderer().addRoundedCornerRectangle(color, 0.2, 20, 1f, 1f)
+            val borderRenderer = Renderer().addRoundedCornerRectangle(Color.BLACK)
+            val renderer = Renderer().addRoundedCornerRectangle(color)
             val button = Button(
                 offset, 0.2f, 0.3f,
                 { disabled[activity] = !disabled[activity]!! },
@@ -53,8 +53,8 @@ class UI(
 
         val txt = font.staticTextRenderer("Driving", -1f + (offset - 0.05f) * aspect, -0.725f)
         staticTexts.add(txt)
-        val renderer = Renderer().addRoundedCornerRectangle(Color.GREEN, 0.2, 20, 1f, 1f)
-        val borderRenderer = Renderer().addRoundedCornerRectangle(Color.BLACK, 0.2, 20, 1f, 1f)
+        val renderer = Renderer().addRoundedCornerRectangle(Color.GREEN)
+        val borderRenderer = Renderer().addRoundedCornerRectangle(Color.BLACK)
         val button = Button(
             offset, 0.2f, 0.3f,
             { disabled[null] = !disabled[null]!! },
@@ -67,7 +67,7 @@ class UI(
     fun render(simTime: Double) {
         val aspect = window.getAspect()
 
-        background.renderBasic(
+        background.render(
             Matrix4f(),
             Matrix4f()
                 .translate(x, y, 0f)
@@ -75,18 +75,18 @@ class UI(
         )
 
         for (text in staticTexts) {
-            text.renderBasic(Matrix4f(), Matrix4f().scale(1f, 1f, 1f))
+            text.render(Matrix4f(), Matrix4f().scale(1f, 1f, 1f))
         }
 
         // Sym -1f + 0.2f*aspect, 0.05f * aspect
         for (button in buttons.values) {
-            button.borderRenderer.renderBasic(
+            button.borderRenderer.render(
                 Matrix4f(),
                 Matrix4f()
                     .translate(-1f + button.centerX*aspect, -1f + button.centerY, 0f)
                     .scale((button.halfWidth*1.2f) * aspect * s, (button.halfWidth*1.2f) * s, 1f)
             )
-            button.renderer.renderBasic(
+            button.renderer.render(
                 Matrix4f(),
                 Matrix4f()
                     .translate(-1f + button.centerX*aspect, -1f + button.centerY, 0f)

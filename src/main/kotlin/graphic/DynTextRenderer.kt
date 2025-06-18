@@ -10,8 +10,11 @@ class DynTextRenderer(private val window: Window, private val font: Font) {
     private val shaderProgramme = ShaderProgram(listOf("/2DTexture.vert", "/texture.frag"))
     private val vao: Vao = Vao()
     private val vbo: Vbo = Vbo()
+    private val ibo: Ibo = Ibo()
     private var nVertices: Int = 0
-    private val vertices = MemoryUtil.memAllocFloat(4096);
+    private var nIndices: Int = 0
+    private val vertices = MemoryUtil.memAllocFloat(4096)
+    private val indices = MemoryUtil.memAllocInt(4096)
     private val width: Int
     private val height: Int
     private val aspect = window.getAspect()
@@ -21,6 +24,9 @@ class DynTextRenderer(private val window: Window, private val font: Font) {
             // Reserve memory
             vbo.withBound {
                 GL15.glBufferData(GL_ARRAY_BUFFER, (vertices.capacity() * 4).toLong(), GL_DYNAMIC_DRAW)
+            }
+            ibo.withBound {
+                GL15.glBufferData(GL_ELEMENT_ARRAY_BUFFER, (indices.capacity() * 4).toLong(), GL_DYNAMIC_DRAW)
             }
 
             // Prepare shader
@@ -39,9 +45,11 @@ class DynTextRenderer(private val window: Window, private val font: Font) {
         // Clear old data
         vertices.clear()
         nVertices = 0
+        indices.clear()
+        nIndices = 0
 
         // Create text canvas
-        val txtVertices = textCanvasVertices(
+        val (rVertices, rIndices) = textCanvas(
             text.map { font.glyphs[it]!! },
             llX * aspect, llY,
             font.textureWidth.toFloat(), font.textureHeight.toFloat(),
@@ -49,9 +57,13 @@ class DynTextRenderer(private val window: Window, private val font: Font) {
         )
 
         // Store canvas in buffer
-        nVertices += txtVertices.size
-        vertices.put(txtVertices)
+        nVertices += rVertices.size
+        vertices.put(rVertices)
         vertices.rewind()
+
+        nIndices += rIndices.size
+        indices.put(rIndices)
+        indices.rewind()
     }
 
     fun render(projection: Matrix4f, model: Matrix4f) {
@@ -65,15 +77,20 @@ class DynTextRenderer(private val window: Window, private val font: Font) {
 
             vbo.withBound {
                 GL15.glBufferSubData(GL_ARRAY_BUFFER, 0, vertices) // Upload new data
-                glDrawArrays (GL_TRIANGLES, 0, nVertices) // Draw
+            }
+            ibo.withBound {
+                GL15.glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, indices) // Upload new data
+                glDrawElements(GL_TRIANGLES, nIndices, GL_UNSIGNED_INT, 0)
             }
         }
     }
 
     fun close() {
         MemoryUtil.memFree(vertices)
+        MemoryUtil.memFree(indices)
         shaderProgramme.close()
         vbo.close()
+        ibo.close()
         vao.close()
     }
 }

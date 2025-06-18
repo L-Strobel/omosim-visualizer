@@ -5,6 +5,8 @@ import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL31.glDrawArraysInstanced
 import org.lwjgl.opengl.GL33.glVertexAttribDivisor
 import org.lwjgl.system.MemoryUtil
+import org.poly2tri.geometry.polygon.Polygon
+import java.awt.Color
 import java.nio.FloatBuffer
 
 class Renderer(
@@ -44,7 +46,7 @@ class Renderer(
         }
     }
 
-    fun render(projection: Matrix4f, model: Matrix4f) {
+    fun render(projection: Matrix4f = Matrix4f(), model: Matrix4f = Matrix4f()) {
         shaderProgramme.use()
         vao.withBound {
             if (texture != null) {
@@ -53,26 +55,22 @@ class Renderer(
 
             shaderProgramme.addUniform(projection, "projection")
             shaderProgramme.addUniform(model, "model")
-            mesh.ibo!!.withBound {
-                glDrawElements(GL_TRIANGLES, mesh.indexSize, GL_UNSIGNED_INT,0)
+
+            // Draw
+            if (mesh.ibo != null) {
+                mesh.ibo!!.withBound {
+                    glDrawElements(GL_TRIANGLES, mesh.indexSize, GL_UNSIGNED_INT,0)
+                }
+            } else {
+                glDrawArrays (mesh.drawMode, 0, mesh.size)
             }
         }
     }
 
-    fun renderBasic(projection: Matrix4f, model: Matrix4f) {
-        shaderProgramme.use()
-        vao.withBound {
-            if (texture != null) {
-                glBindTexture(GL_TEXTURE_2D, texture)
-            }
-
-            shaderProgramme.addUniform(projection, "projection")
-            shaderProgramme.addUniform(model, "model")
-            glDrawArrays (mesh.drawMode, 0, mesh.size)
-        }
-    }
-
-    fun renderInstanced(projection: Matrix4f, model: Matrix4f, positions: List<Pair<Float, Float>>) {
+    fun renderInstanced(
+        projection: Matrix4f = Matrix4f(), model: Matrix4f = Matrix4f(),
+        positions: List<Pair<Float, Float>>
+    ) {
         shaderProgramme.use()
         vao.withBound {
             if (texture != null) {
@@ -127,4 +125,53 @@ class Renderer(
         shaderProgramme.close()
         mesh.close()
     }
+}
+
+fun Renderer.addCircleMesh(color: Color, nSegments: Int = 20) : Renderer {
+    val vertices = circle(color, nSegments)
+    val mesh = Mesh.fromVertices(this.vao, vertices, GL_TRIANGLE_FAN)
+    this.addMesh(mesh)
+    return this
+}
+
+fun Renderer.addRectangleMesh(color: Color) : Renderer {
+    val (vertices, indices) = rectangle(color)
+    val mesh = Mesh.fromVertices(this.vao, vertices, indices)
+    this.addMesh(mesh)
+    return this
+}
+
+fun Renderer.addRoundedCornerRectangle(
+    color: Color, roundness: Float = 0.2f, nSegments: Int = 20, width: Float = 1f, height: Float = 1f
+) : Renderer {
+    val (vertices, indices) = roundedCornerRectangle(color, roundness, nSegments, width, height)
+    val mesh = Mesh.fromVertices(this.vao, vertices, indices)
+    this.addMesh(mesh)
+    return this
+}
+
+fun Renderer.addTextCanvas(
+    glyphs: List<Glyph>,
+    llX: Float, llY: Float,
+    texWidth: Float, texHeight: Float,
+    windowWidth: Float, windowHeight: Float
+) : Renderer {
+    val (vertices, indices) = textCanvas(glyphs, llX, llY, texWidth, texHeight, windowWidth, windowHeight)
+    val mesh = Mesh.fromVertices(this.vao, vertices, indices)
+    this.addMesh(mesh)
+    return this
+}
+
+fun Renderer.addTextureCanvas(): Renderer {
+    val (vertices, indices) = textureCanvas()
+    val mesh = Mesh.fromVertices(this.vao, vertices, indices)
+    this.addMesh(mesh)
+    return this
+}
+
+fun Renderer.addMeshFrom2DPolygons(polygons: List<Polygon>, colors: List<Color>) : Renderer {
+    val (vertices, indices) = from2DPolygons(polygons, colors)
+    val mesh = Mesh.fromVertices(this.vao, vertices, indices)
+    this.addMesh(mesh)
+    return this
 }

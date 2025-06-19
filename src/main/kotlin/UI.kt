@@ -73,7 +73,7 @@ class UI(
             val borderRenderer = Renderer().addRoundedCornerRectangle(uiBlack, roundness = 0.5f)
             val renderer = Renderer().addRoundedCornerRectangle(aColor, roundness = 0.5f)
             val button = Button(
-                1f-widthSettings/7f, topSettings-0.1f-offset, 0.3f,
+                1f-widthSettings/7f, topSettings-0.1f-offset, 0.03f,
                 { disabled[activity] = !disabled[activity]!! },
                 renderer,
                 borderRenderer
@@ -89,7 +89,7 @@ class UI(
         val renderer = Renderer().addRoundedCornerRectangle(aColor, roundness = 0.5f)
         val borderRenderer = Renderer().addRoundedCornerRectangle(uiBlack, roundness = 0.5f)
         val button = Button(
-            1f-widthSettings/7f, topSettings-0.1f-offset, 0.3f,
+            1f-widthSettings/7f, topSettings-0.1f-offset, 0.03f,
             { disabled[null] = !disabled[null]!! },
             renderer,
             borderRenderer
@@ -117,12 +117,12 @@ class UI(
             button.borderRenderer.render(
                 model = Matrix4f()
                     .translate(button.centerX, button.centerY, 0f)
-                    .scale((button.halfWidth*1.3f) * aspect *  0.1f, (button.halfWidth*1.3f) *  0.1f, 1f)
+                    .scale((button.halfWidth*1.3f) * aspect , (button.halfWidth*1.3f) , 1f)
             )
             button.renderer.render(
                 model = Matrix4f()
                     .translate(button.centerX, button.centerY, 0f)
-                    .scale(button.halfWidth * aspect *  0.1f, button.halfWidth *  0.1f, 1f)
+                    .scale(button.halfWidth * aspect, button.halfWidth, 1f)
             )
         }
 

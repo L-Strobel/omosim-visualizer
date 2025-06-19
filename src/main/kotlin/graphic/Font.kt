@@ -148,7 +148,6 @@ class Font(
      */
     fun staticTextRenderer(text: CharSequence) : Renderer {
         val (width, height) = window.getCurrentWindowSize()
-        val aspect = window.getAspect()
         return Renderer(texture = this.texture).addTextCanvas(
             text.map { glyphs[it] ?: glyphs['?']!! },
             textureWidth.toFloat(), textureHeight.toFloat(),

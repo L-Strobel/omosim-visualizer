@@ -11,11 +11,11 @@ class Button (
     val borderRenderer: Renderer,
     val active: Boolean = true
 ) {
-    fun inBounds(xRel: Float, yRel: Float, aspect: Float) : Boolean {
-        if (xRel <  (-1f+(centerX-halfWidth)*aspect)) return false
-        if (xRel >= (-1f+(centerX+halfWidth)*aspect)) return false
-        if (yRel <  (-1f+centerY-halfWidth)) return false
-        if (yRel >= (-1f+centerY+halfWidth)) return false
+    fun inBounds(xRel: Float, yRel: Float) : Boolean {
+        if (xRel <  (centerX-halfWidth)) return false
+        if (xRel >= (centerX+halfWidth)) return false
+        if (yRel <  (centerY-halfWidth)) return false
+        if (yRel >= (centerY+halfWidth)) return false
         return true
     }
 

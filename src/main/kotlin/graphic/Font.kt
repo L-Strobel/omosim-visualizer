@@ -137,7 +137,7 @@ class Font(
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         }
         g.font = font
-        g.paint = Color.WHITE
+        g.paint = Color(0.9f, 0.9f, 0.9f)
         g.drawString(c.toString(), 0, metrics.ascent)
         g.dispose()
         return image

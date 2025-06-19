@@ -70,7 +70,6 @@ class Visualizer {
         }
         agentRenderers[null] = Renderer(instances = vAgents.size).addCircleMesh(Color.GREEN)
 
-
         // Read background data
         bgRenderer = BackgroundReader.getOSM(
             File("C:/Users/les29rq/open_data/OSM/bayern-latest.osm.pbf"),

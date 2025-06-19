@@ -2,44 +2,44 @@ package de.uniwuerzburg.omodvisualizer
 
 import de.uniwuerzburg.omod.core.models.ActivityType
 import de.uniwuerzburg.omodvisualizer.Controls.disabled
-import de.uniwuerzburg.omodvisualizer.graphic.*
+import de.uniwuerzburg.omodvisualizer.graphic.Font
+import de.uniwuerzburg.omodvisualizer.graphic.Renderer
+import de.uniwuerzburg.omodvisualizer.graphic.addRoundedCornerRectangle
 import org.joml.Matrix4f
-import org.w3c.dom.Text
 import java.awt.Color
 
 class UI(
     val window: Window
 ) {
+    // UI Elements
     val buttons = mutableMapOf<ActivityType?, Button>()
     val backgroundClock: Renderer
     val backgroundSettings: Renderer
     val staticTexts = mutableListOf<TextElement>()
-    val clock: DynTextRenderer
+    val clock: DynTextElement
 
     // Colors
-    val uiBlack = Color(0f, 0f, 0f, 0.8f)
+    private val uiBlack = Color(0f, 0f, 0f, 0.8f)
+
+    // Fonts
+    private val fontLarge = Font(window, 28)
+    private val fontMedium = Font(window,26)
+    private val fontSmall = Font(window,23)
+    private val fontSmallest = Font(window,16)
 
     // Important positions
     val topSettings = 0.5f
     val widthSettings = 0.45f
 
     init {
-        val aspect = window.getAspect()
-        val fontLarge = Font(window, 26)
-        val fontMedium = Font(window,26)
-        val fontSmall = Font(window,23)
-        val fontSmallest = Font(window,16)
-
         // Clock Widget
         backgroundClock = Renderer()
             .addRoundedCornerRectangle(uiBlack, width = 0.3f, height = 0.06f, roundness = 0.03f)
-        clock = DynTextRenderer(window, fontLarge)
+        clock = DynTextElement("", fontLarge, 0f, -1f + 0.125f, window, Alignment.RIGHT)//DynTextRenderer(window, fontLarge)
 
         // Settings Widget
         backgroundSettings = Renderer()
             .addRoundedCornerRectangle(uiBlack, width = widthSettings, height = topSettings, roundness = 0.05f)
-
-        //val headerSettings = fontMedium.staticTextRenderer("Activities", 1f-widthSettings/4f, topSettings-0.1f)
         val settingsHeader = TextElement(
             "Activities", fontMedium,
             1f-widthSettings/4f, topSettings-0.1f,
@@ -47,8 +47,14 @@ class UI(
         )
         staticTexts.add(settingsHeader)
 
-        //val attribution = fontSmallest.staticTextRenderer("Map data from OpenStreetMap", 0.77f, -0.97f)
-        val attribution = TextElement("Map data from OpenStreetMap", fontSmallest, 0.98f, -0.97f, window, Alignment.RIGHT)
+        // OSM Attribution
+        val attribution = TextElement(
+            "Map data from OpenStreetMap",
+            fontSmallest,
+            0.98f, -0.97f,
+            window,
+            Alignment.RIGHT
+        )
         staticTexts.add(attribution)
 
         // Buttons
@@ -72,15 +78,12 @@ class UI(
                 renderer,
                 borderRenderer
             )
-            //val txt = fontSmall.staticTextRenderer(activity.toString().lowercase(),0f, 0f)// 1f-widthSettings/2.1f, topSettings-0.1f-offset)
             val txt = TextElement(activity.toString().lowercase(), fontSmall,  1f-widthSettings/3.7f, topSettings-0.1f-offset, window, Alignment.RIGHT)
             staticTexts.add(txt)
             buttons[activity] = button
             offset += 0.125f
         }
-
-        //val txt = fontSmall.staticTextRenderer("Driving", 0f, 0f)//1f-widthSettings/2.1f, topSettings-0.1f-offset)
-        val txt = TextElement("school", fontSmall,  1f-widthSettings/3.7f, topSettings-0.1f-offset, window, Alignment.RIGHT)
+        val txt = TextElement("Moving", fontSmall,  1f-widthSettings/3.7f, topSettings-0.1f-offset, window, Alignment.RIGHT)
         staticTexts.add(txt)
         val aColor = Color(Color.GREEN.red, Color.GREEN.green, Color.GREEN.blue, (255*0.6).toInt())
         val renderer = Renderer().addRoundedCornerRectangle(aColor, roundness = 0.5f)
@@ -97,6 +100,7 @@ class UI(
     fun render(simTime: Double) {
         val aspect = window.getAspect()
 
+        // Frames
         backgroundClock.render(
             model = Matrix4f()
                 .translate(0f, -1f + 0.125f, 0f)
@@ -108,11 +112,7 @@ class UI(
                 .scale( aspect,  1f, 1f)
         )
 
-        for (text in staticTexts) {
-            text.draw()
-        }
-
-        // Sym -1f + 0.2f*aspect, 0.05f * aspect
+        // Buttons
         for (button in buttons.values) {
             button.borderRenderer.render(
                 model = Matrix4f()
@@ -126,11 +126,18 @@ class UI(
             )
         }
 
-        val time = String.format("Day %01d %02d:%02d", (simTime / (24*60) + 1).toInt(), (simTime / 60 % 24).toInt(), (simTime % 60).toInt())
-        clock.updateTextTo(time)
-        clock.render(model = Matrix4f().translate(-0.05f, 0f, 0f))
-
-        //test.draw()
+        // Texts
+        for (text in staticTexts) {
+            text.draw()
+        }
+        val time = String.format(
+            "Day %01d %02d:%02d",
+            (simTime / (24*60) + 1).toInt(),
+            (simTime / 60 % 24).toInt(),
+            (simTime % 60).toInt()
+        )
+        clock.update(time, Alignment.CENTER)
+        clock.draw()
     }
 
     fun close() {

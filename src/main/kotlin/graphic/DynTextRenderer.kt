@@ -41,7 +41,7 @@ class DynTextRenderer(private val window: Window, private val font: Font) {
         height = h
     }
 
-    fun updateTextTo(text: CharSequence, llX: Float, llY: Float) {
+    fun updateTextTo(text: CharSequence) {
         // Clear old data
         vertices.clear()
         nVertices = 0
@@ -49,9 +49,9 @@ class DynTextRenderer(private val window: Window, private val font: Font) {
         nIndices = 0
 
         // Create text canvas
+        val glyphs = text.map { font.glyphs[it] ?: font.glyphs['?']!! }
         val (rVertices, rIndices) = textCanvas(
-            text.map { font.glyphs[it]!! },
-            llX * aspect, llY,
+            glyphs,
             font.textureWidth.toFloat(), font.textureHeight.toFloat(),
             width.toFloat(), height.toFloat()
         )

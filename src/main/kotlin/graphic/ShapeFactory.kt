@@ -192,7 +192,6 @@ fun roundedCornerRectangle(
 
 fun textCanvas (
     glyphs: List<Glyph>,
-    llX: Float, llY: Float,
     texWidth: Float, texHeight: Float,
     windowWidth: Float, windowHeight: Float
 ): Pair<FloatArray, IntArray> {
@@ -203,9 +202,9 @@ fun textCanvas (
     var iOffset = 0
     for (glyph in glyphs) {
         // Window position
-        val ww = glyph.width.toFloat() / windowWidth
-        val wh = glyph.height.toFloat() / windowHeight
-        val positions =  rectangleCoords(llX+   xOffset, llX+ww+xOffset, llY, llY + wh)
+        val ww = glyph.width.toFloat() / (windowWidth / 2f)
+        val wh = glyph.height.toFloat() / (windowHeight / 2f)
+        val positions =  rectangleCoords(xOffset, ww+xOffset, 0f, wh)
 
         // Atlas position
         val gx = glyph.x.toFloat() / texWidth

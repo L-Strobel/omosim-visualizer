@@ -22,7 +22,7 @@ import kotlin.math.max
  */
 class Font(
     private val window: Window,
-    fontSize: Int = 48,
+    val fontSize: Int = 48,
     antiAlias: Boolean = true
 ) {
     val glyphs: MutableMap<Char, Glyph> = mutableMapOf()
@@ -146,11 +146,11 @@ class Font(
     /**
      * Write text to a location on screen.
      */
-    fun staticTextRenderer(text: CharSequence, llX: Float, llY: Float) : Renderer {
+    fun staticTextRenderer(text: CharSequence) : Renderer {
         val (width, height) = window.getCurrentWindowSize()
+        val aspect = window.getAspect()
         return Renderer(texture = this.texture).addTextCanvas(
             text.map { glyphs[it] ?: glyphs['?']!! },
-            llX, llY,
             textureWidth.toFloat(), textureHeight.toFloat(),
             width.toFloat(), height.toFloat()
         )

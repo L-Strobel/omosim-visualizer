@@ -152,11 +152,10 @@ fun Renderer.addRoundedCornerRectangle(
 
 fun Renderer.addTextCanvas(
     glyphs: List<Glyph>,
-    llX: Float, llY: Float,
     texWidth: Float, texHeight: Float,
     windowWidth: Float, windowHeight: Float
 ) : Renderer {
-    val (vertices, indices) = textCanvas(glyphs, llX, llY, texWidth, texHeight, windowWidth, windowHeight)
+    val (vertices, indices) = textCanvas(glyphs, texWidth, texHeight, windowWidth, windowHeight)
     val mesh = Mesh.fromVertices(this.vao, vertices, indices)
     this.addMesh(mesh)
     return this

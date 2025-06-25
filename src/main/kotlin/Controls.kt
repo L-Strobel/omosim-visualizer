@@ -8,7 +8,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 object Controls {
-    var speed = 10f // Speed-up compared to real time
+    private var speed = 10f // Speed-up compared to real time
     var zoom = 1f
     var up = 0f
     var right = 0f
@@ -34,17 +34,14 @@ object Controls {
                     glfwGetCursorPos(w, xPos, yPos)
 
                     val (width, height) = window.getCurrentWindowSize()
-                    val aspect  = window.getAspect()
 
                     // In home button
                     val xRel = xPos[0] / (width/2) - 1.0
                     val yRel = (height - yPos[0]) / (height/2) - 1.0
 
-                    var buttonPressed = false
                     for (uiButton in buttons) {
                         if (uiButton.inBounds(xRel.toFloat(), yRel.toFloat())) {
-                            uiButton.onClick()
-                            buttonPressed = true
+                            uiButton.onClick(uiButton)
                         }
                     }
 
@@ -79,9 +76,9 @@ object Controls {
             } else if (key == GLFW_KEY_D && moveAction) {
                 right += moveStrength
             } else if (key == GLFW_KEY_E  && action == GLFW_RELEASE) {
-                speed *= 2
+                speedChangeMult(2f)
             } else if (key == GLFW_KEY_R && action == GLFW_RELEASE)  {
-                speed /= 2
+                speedChangeMult(0.5f)
             } else if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)  {
                 pause = if (pause == 1f) 0f else 1f
             } else if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)  {
@@ -124,5 +121,17 @@ object Controls {
 
     fun registerButtons(button: Button) {
         buttons.add(button)
+    }
+
+    fun speedChangeAdd(by: Float) {
+        speed = min(max(speed + by, 0f), 500f)
+    }
+
+    fun speedChangeMult(by: Float) {
+        speed = min(max(speed * by, 0f), 500f)
+    }
+
+    fun getSpeed() : Float {
+        return speed
     }
 }

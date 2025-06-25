@@ -24,7 +24,7 @@ import kotlin.math.max
 class Font(
     private val window: Window,
     val fontSize: Int = 48,
-    antiAlias: Boolean = false
+    antiAlias: Boolean = true
 ) {
     val glyphs: MutableMap<Char, Glyph> = mutableMapOf()
     val texture: Int

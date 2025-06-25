@@ -42,7 +42,7 @@ object Controls {
 
                     var buttonPressed = false
                     for (uiButton in buttons) {
-                        if (uiButton.inBounds(xRel.toFloat(), yRel.toFloat(), aspect)) {
+                        if (uiButton.inBounds(xRel.toFloat(), yRel.toFloat())) {
                             uiButton.onClick()
                             buttonPressed = true
                         }

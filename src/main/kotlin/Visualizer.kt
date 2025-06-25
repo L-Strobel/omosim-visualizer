@@ -5,6 +5,7 @@ import de.uniwuerzburg.omodvisualizer.graphic.*
 import de.uniwuerzburg.omodvisualizer.input.BackgroundReader
 import de.uniwuerzburg.omodvisualizer.input.CoordTransformer
 import de.uniwuerzburg.omodvisualizer.input.VisualAgent
+import de.uniwuerzburg.omodvisualizer.theme.ThemeColors
 import org.joml.Matrix4f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
@@ -61,14 +62,10 @@ class Visualizer {
         // Init renderers
         agentRenderers = mutableMapOf<ActivityType?, Renderer>()
         for (activity in ActivityType.entries) {
-            val color = when(activity) {
-                ActivityType.HOME -> Color.CYAN
-                ActivityType.WORK -> Color.RED
-                else -> Color.YELLOW
-            }
+            val color = ThemeColors.of(activity)
             agentRenderers[activity] = Renderer(instances = vAgents.size).addCircleMesh(color)
         }
-        agentRenderers[null] = Renderer(instances = vAgents.size).addCircleMesh(Color.GREEN)
+        agentRenderers[null] = Renderer(instances = vAgents.size).addCircleMesh(ThemeColors.of(null))
 
         // Read background data
         bgRenderer = BackgroundReader.getOSM(

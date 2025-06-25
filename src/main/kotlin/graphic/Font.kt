@@ -6,6 +6,7 @@ import org.lwjgl.opengl.GL30.*
 import org.lwjgl.system.MemoryStack.stackPush
 import java.awt.Color
 import java.awt.Font
+import java.awt.Font.MONOSPACED
 import java.awt.Font.PLAIN
 import java.awt.RenderingHints
 import java.awt.geom.AffineTransform
@@ -23,7 +24,7 @@ import kotlin.math.max
 class Font(
     private val window: Window,
     val fontSize: Int = 48,
-    antiAlias: Boolean = true
+    antiAlias: Boolean = false
 ) {
     val glyphs: MutableMap<Char, Glyph> = mutableMapOf()
     val texture: Int
@@ -32,7 +33,7 @@ class Font(
 
     init {
         // Load Font
-        val font = Font("Segoe UI", PLAIN, fontSize)
+        val font = Font(MONOSPACED, PLAIN, fontSize)
 
         // Create Bitmap Image
         var imageWidth = 0

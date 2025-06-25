@@ -5,6 +5,7 @@ import de.uniwuerzburg.omodvisualizer.Controls.disabled
 import de.uniwuerzburg.omodvisualizer.graphic.Font
 import de.uniwuerzburg.omodvisualizer.graphic.Renderer
 import de.uniwuerzburg.omodvisualizer.graphic.addRoundedCornerRectangle
+import de.uniwuerzburg.omodvisualizer.theme.ThemeColors
 import org.joml.Matrix4f
 import java.awt.Color
 
@@ -63,11 +64,7 @@ class UI(
             if (activity == ActivityType.BUSINESS) {
                 continue
             }
-            val color = when (activity) {
-                ActivityType.HOME -> Color.CYAN
-                ActivityType.WORK -> Color.RED
-                else -> Color.YELLOW
-            }
+            val color = ThemeColors.of(activity)
 
             val aColor = Color(color.red, color.green, color.blue, (255*0.6).toInt())
             val borderRenderer = Renderer().addRoundedCornerRectangle(uiBlack, roundness = 0.5f)
@@ -85,7 +82,8 @@ class UI(
         }
         val txt = TextElement("Moving", fontSmall,  1f-widthSettings/3.7f, topSettings-0.1f-offset, window, Alignment.RIGHT)
         staticTexts.add(txt)
-        val aColor = Color(Color.GREEN.red, Color.GREEN.green, Color.GREEN.blue, (255*0.6).toInt())
+        val dColor = ThemeColors.of(null)
+        val aColor = Color(dColor.red, dColor.green, dColor.blue, (255*0.6).toInt())
         val renderer = Renderer().addRoundedCornerRectangle(aColor, roundness = 0.5f)
         val borderRenderer = Renderer().addRoundedCornerRectangle(uiBlack, roundness = 0.5f)
         val button = Button(

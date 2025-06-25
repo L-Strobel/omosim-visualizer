@@ -10,7 +10,8 @@ class TextElement(
     val x: Float,
     val y: Float,
     val window: Window,
-    alignment: Alignment
+    alignment: Alignment,
+    private val scale: Float = 1f
 ) {
     val renderer: Renderer
     val xAlignmentOffset: Float
@@ -31,7 +32,10 @@ class TextElement(
     }
 
     fun draw() {
-        renderer.render(model = Matrix4f().translate(x - xAlignmentOffset, y - measuredHeight / 2f, 0f))
+        renderer.render(model = Matrix4f()
+            .translate((x - xAlignmentOffset * scale) , (y - measuredHeight * scale / 2f) , 0f)
+            .scale(scale, scale, 1f)
+        )
     }
 
     fun close() {

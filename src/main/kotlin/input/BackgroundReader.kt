@@ -70,7 +70,6 @@ class BackgroundReader {
             // Draw order of background
             processor.mapObjects.sortBy { it.type.zorder }
 
-
             fun colorMap(type: MapObjectType) : Color {
                 return when (type) {
                     MapObjectType.BUILDING -> Color.BLACK

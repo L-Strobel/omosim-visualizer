@@ -42,7 +42,7 @@ class Visualizer {
         window = Window("")
         aspect = window.getAspect()
 
-        val (agents, t, b) = VisualAgent.fromFile(File(("debugIn/basicTest.json")), 7000, aspect)
+        val (agents, t, b) = VisualAgent.fromFile(File(("debugIn/wrzb.json")), 7000, aspect)
         vAgents = agents
         transformer = t
         bBox = b
@@ -77,7 +77,7 @@ class Visualizer {
             transformer
         )
 
-        ui = UI(window)
+        ui = UI(window, this)
         for (button in ui.buttons) {
             Controls.registerButtons(button)
         }
@@ -106,9 +106,16 @@ class Visualizer {
     }
 
     private fun updateState(delta: Long) {
+        var allDone = true
         simTime += delta / 1e9 * Controls.getSpeed() * Controls.pause
         for (agent in vAgents) {
-            agent.updatePosition(simTime)
+            val finished = agent.updatePosition(simTime)
+            if (!finished) {
+                allDone = false
+            }
+        }
+        if (allDone) {
+            reset() // Loop simulation
         }
         positions =  vAgents.groupBy { it.activity }.mapValues { (_, v) -> v.map { it.x to it.y } }
     }
@@ -147,5 +154,10 @@ class Visualizer {
         val delta = (now - lastTime).inWholeNanoseconds
         lastTime = now
         return delta
+    }
+
+    fun reset() {
+        simTime = 0.0
+        vAgents.forEach { it.reset() }
     }
 }

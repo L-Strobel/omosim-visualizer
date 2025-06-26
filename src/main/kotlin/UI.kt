@@ -8,7 +8,8 @@ import org.joml.Matrix4f
 import java.awt.Color
 
 class UI(
-    val window: Window
+    val window: Window,
+    visualizer: Visualizer
 ) {
     // UI Elements
     val buttons = mutableListOf<Button>()
@@ -144,7 +145,7 @@ class UI(
         val rendererR = Renderer(texture = texR).addTextureCanvas()
         val buttonR = Button(
             -0.22f, -1f + 0.125f, 0.03f,
-            {},
+            {visualizer.reset()},
             rendererR,
             null
         )

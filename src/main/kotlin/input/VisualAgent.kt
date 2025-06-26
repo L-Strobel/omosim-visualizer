@@ -16,26 +16,28 @@ import kotlin.math.max
 import kotlin.math.min
 
 class VisualAgent (
-    private val trace: ArrayDeque<TracePoint>,
+    private val trace: Array<TracePoint>,
 ) {
     var x = trace.first().x
     var y = trace.first().y
     var activity = trace.first().activity
     private var lastPoint = trace.first()
+    private var t = 0
 
-    fun updatePosition(simTime: Double) {
-        if (trace.isEmpty()) { return } // This agent is done
+    fun updatePosition(simTime: Double) : Boolean {
+        if (t >= trace.size - 1) { return true } // This agent is done
 
-        var diff = simTime - trace.first().stop
+        var diff = simTime - trace[t].stop
         var changed = false
         while (diff > 0) {
-            if (trace.size <= 1) { break }
-            lastPoint = trace.removeFirst()
-            diff = simTime - trace.first().stop
+            if (t >= trace.size - 1) { break }
+            lastPoint = trace[t]
+            t += 1
+            diff = simTime - trace[t].stop
             changed = true
-            activity = trace.first().activity
+            activity = trace[t].activity
         }
-        val thisPoint = trace.first()
+        val thisPoint = trace[t]
         if ((thisPoint.start > simTime) && (thisPoint.start != lastPoint.stop)) {
             // Interpolate position between points
             val alpha = ((simTime - lastPoint.stop) / (thisPoint.start - lastPoint.stop)).toFloat()
@@ -45,6 +47,15 @@ class VisualAgent (
             x = thisPoint.x
             y = thisPoint.y
         }
+        return false
+    }
+
+    fun reset() {
+        x = trace.first().x
+        y = trace.first().y
+        activity = trace.first().activity
+        lastPoint = trace.first()
+        t = 0
     }
 
     companion object {
@@ -166,7 +177,7 @@ class VisualAgent (
                 clockTime -= 24 * 60
                 require(clockTime >= 0.0) { "Clock time got negative!" }
             }
-            return VisualAgent(ArrayDeque(trace))
+            return VisualAgent(trace.toTypedArray())
         }
     }
 }

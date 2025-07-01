@@ -36,6 +36,14 @@ class Window (title: String) {
         // Enable v-sync, 1 -> Enabled
         glfwSwapInterval(0)
 
+        // Aspect ratio and size
+        glfwSetWindowAspectRatio(ref, vidMode.width(), vidMode.height())
+        glfwSetWindowSizeLimits(
+            ref,
+            vidMode.width(), vidMode.height(),
+            GLFW_DONT_CARE, GLFW_DONT_CARE
+        )
+
         // Make the window visible
         glfwShowWindow(ref)
     }

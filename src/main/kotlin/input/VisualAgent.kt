@@ -1,5 +1,6 @@
 package de.uniwuerzburg.omodvisualizer.input
 
+import de.uniwuerzburg.omod.core.models.Mode
 import de.uniwuerzburg.omod.io.json.OutputActivity
 import de.uniwuerzburg.omod.io.json.OutputEntry
 import de.uniwuerzburg.omod.io.json.OutputFormat
@@ -131,6 +132,9 @@ class VisualAgent (
 
                             // Skip undefined trip
                             if ((leg.lats == null) || (leg.lons == null)) {
+                                continue
+                            }
+                            if (leg.mode != Mode.CAR_DRIVER) { // Only show movement of cars
                                 continue
                             }
 

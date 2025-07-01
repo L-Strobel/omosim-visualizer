@@ -56,6 +56,17 @@ class UI(
         )
         staticTexts.add(attribution)
 
+        // Self attribution
+        val watermark = TextElement(
+            "OMOD Visualizer",
+            fontAttribution,
+            -0.98f, -0.97f,
+            window,
+            Alignment.LEFT
+        )
+        staticTexts.add(watermark)
+
+
         // Activity show Buttons
         var offset = 0.125f
         for (activity in ActivityType.entries + listOf(null)) {

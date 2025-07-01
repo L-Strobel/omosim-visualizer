@@ -23,5 +23,5 @@ You need Java 17 or a later version.
 4. Run Visualizer:
 
    ```
-   java -jar omod-visualizer-1.0-all.jar Path/to/OMOD.json Path/to/osm.pbf 
+   java -jar omod-visualizer-natives-windows-1.0-all.jar Path/to/OMOD.json Path/to/osm.pbf 
    ```

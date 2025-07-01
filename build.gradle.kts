@@ -1,6 +1,8 @@
 plugins {
     kotlin("jvm") version "2.2.0"
     kotlin("plugin.serialization") version "2.2.0"
+    id("com.gradleup.shadow") version "8.+"
+    application
 }
 
 group = "de.uniwuerzburg.omodvisualizer"
@@ -48,5 +50,19 @@ tasks.test {
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(17)
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+tasks.shadowJar {
+    archiveBaseName.set("omod-visualizer-${lwjglNatives}")
+    mergeServiceFiles()
+}
+
+application {
+    mainClass.set("de.uniwuerzburg.omodvisualizer.MainKt")
 }

@@ -5,8 +5,8 @@
 ---
 
 <p align="center">
-   <img src="doc/images/omod_vis_far.png" width="1000"/>
-   <img src="doc/images/omod_vis_close.png" width="1000"/>
+   <img src="doc/images/omod_vis_far.png" width="1000" alt="Omod Visualization Würzburg Far"/>
+   <img src="doc/images/omod_vis_close.png" width="1000" alt="Omod Visualization Würzburg Close"/>
 </p>
 
 ---

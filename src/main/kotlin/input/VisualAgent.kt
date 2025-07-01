@@ -2,6 +2,7 @@ package de.uniwuerzburg.omodvisualizer.input
 
 import de.uniwuerzburg.omod.io.json.OutputActivity
 import de.uniwuerzburg.omod.io.json.OutputEntry
+import de.uniwuerzburg.omod.io.json.OutputFormat
 import de.uniwuerzburg.omod.io.json.OutputTrip
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -65,7 +66,7 @@ class VisualAgent (
         {
             println("Start reading agent data...")
             print("Read Json...\r")
-            val omodData = Json.decodeFromStream<List<OutputEntry>>(file.inputStream())
+            val omodData = Json.decodeFromStream<OutputFormat>(file.inputStream())
             println("Read Json... Done!")
 
             // Scale coordinates to display coordinates
@@ -73,7 +74,7 @@ class VisualAgent (
             var maxLat = -1 * Float.MAX_VALUE
             var minLon = Float.MAX_VALUE
             var maxLon = -1 * Float.MAX_VALUE
-            for (agent in omodData) {
+            for (agent in omodData.agents) {
                 val firstLeg = agent.mobilityDemand.first().plan.first() as OutputActivity
                 minLat = min(firstLeg.lat.toFloat(), minLat)
                 maxLat = max(firstLeg.lat.toFloat(), maxLat)
@@ -86,7 +87,7 @@ class VisualAgent (
             print("Interpolating trips...\r")
             val vAgents: List<VisualAgent>
             runBlocking(Dispatchers.Default) {
-               val vAgentsDef = omodData.map{ async { getVAgent(it, transformer) } } // In parallel
+               val vAgentsDef = omodData.agents.map{ async { getVAgent(it, transformer) } } // In parallel
                vAgents = vAgentsDef.awaitAll()
             }
             println("Interpolating trips... Done!")

@@ -1,20 +1,25 @@
 plugins {
-    kotlin("jvm") version "1.9.23"
+    kotlin("jvm") version "2.2.0"
+    kotlin("plugin.serialization") version "2.2.0"
 }
 
 group = "de.uniwuerzburg.omodvisualizer"
-version = "1.0-SNAPSHOT"
+version = "1.0"
 
 val lwjglVersion = "3.3.4"
 val jomlVersion = "1.10.7"
 val lwjglNatives = "natives-windows"
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
-    implementation(files("debugJar/omod-2.0.15-all.jar"))
+    implementation("org.geotools:gt-epsg-hsql:31.+")
+    implementation("org.geotools:gt-main:31.+")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    implementation("org.openstreetmap.osmosis:osmosis-pbf:0.48.+")
+    implementation("org.openstreetmap.osmosis:osmosis-areafilter:0.48.+")
+    implementation("org.locationtech.jts:jts-core:1.+")
+
+    implementation("com.github.L-Strobel:omod:v2.1.1")
     implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
 
     implementation("org.lwjgl:lwjgl")
@@ -31,9 +36,9 @@ dependencies {
     runtimeOnly("org.lwjgl:lwjgl-opengl::$lwjglNatives")
     runtimeOnly("org.lwjgl:lwjgl-stb::$lwjglNatives")
 
-    implementation("org.locationtech.jts:jts-core:1.+")
-    implementation("org.orbisgis:poly2tri-core:0.+")
     implementation("org.joml", "joml", jomlVersion)
+
+    implementation("org.orbisgis:poly2tri-core:0.+")
 
     implementation("com.github.ajalt.clikt:clikt:4.+")
 }

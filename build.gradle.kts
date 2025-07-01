@@ -35,7 +35,7 @@ dependencies {
     implementation("org.orbisgis:poly2tri-core:0.+")
     implementation("org.joml", "joml", jomlVersion)
 
-    testImplementation(kotlin("test"))
+    implementation("com.github.ajalt.clikt:clikt:4.+")
 }
 
 tasks.test {

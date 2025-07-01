@@ -15,7 +15,10 @@ import java.io.File
 import kotlin.time.TimeSource
 
 
-class Visualizer {
+class Visualizer(
+    val omodFile: File,
+    val osmFile: File
+) {
     private lateinit var window: Window
     private var aspect: Float = 1f
     private lateinit var vAgents: List<VisualAgent>
@@ -42,7 +45,7 @@ class Visualizer {
         window = Window("")
         aspect = window.getAspect()
 
-        val (agents, t, b) = VisualAgent.fromFile(File(("debugIn/wrzb.json")), 7000, aspect)
+        val (agents, t, b) = VisualAgent.fromFile(omodFile, 7000, aspect)
         vAgents = agents
         transformer = t
         bBox = b
@@ -69,7 +72,7 @@ class Visualizer {
 
         // Read background data
         bgRenderer = BackgroundReader.getOSM(
-            File("C:/Users/les29rq/open_data/OSM/bayern-latest.osm.pbf"),
+            osmFile,
             bBox[0].toDouble() - 0.05,
             bBox[1].toDouble() + 0.05,
             bBox[2].toDouble() - 0.1,

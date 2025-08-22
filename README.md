@@ -21,7 +21,7 @@ You need Java 17 or a later version.
 
 1. Download the latest release (see *Releases* on the right)
 2. Obtain Omosim output, see https://github.com/L-Strobel/omosim. Must be in JSON format.
-3. Download OSM data that covers the OMOSIM output. Large files will lead to long start up times on the first run. Recommended download site: https://download.geofabrik.de/
+3. Download OSM data that covers the Omosim output. Large files will lead to long start up times on the first run. Recommended download site: https://download.geofabrik.de/
 4. Run Visualizer:
 
    ```

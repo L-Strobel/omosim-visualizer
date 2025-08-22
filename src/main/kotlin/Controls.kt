@@ -1,6 +1,6 @@
-package de.uniwuerzburg.omodvisualizer
+package de.uniwuerzburg.omosimvisualizer
 
-import de.uniwuerzburg.omod.core.models.ActivityType
+import de.uniwuerzburg.omosim.core.models.ActivityType
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.NULL

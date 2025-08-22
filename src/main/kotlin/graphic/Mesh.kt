@@ -1,4 +1,4 @@
-package de.uniwuerzburg.omodvisualizer.graphic
+package de.uniwuerzburg.omosimvisualizer.graphic
 
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL30.*

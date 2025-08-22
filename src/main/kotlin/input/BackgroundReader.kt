@@ -1,9 +1,9 @@
-package de.uniwuerzburg.omodvisualizer.input
+package de.uniwuerzburg.omosimvisualizer.input
 
 import crosby.binary.osmosis.OsmosisReader
-import de.uniwuerzburg.omodvisualizer.graphic.Mesh
-import de.uniwuerzburg.omodvisualizer.graphic.Renderer
-import de.uniwuerzburg.omodvisualizer.graphic.addMeshFrom2DPolygons
+import de.uniwuerzburg.omosimvisualizer.graphic.Mesh
+import de.uniwuerzburg.omosimvisualizer.graphic.Renderer
+import de.uniwuerzburg.omosimvisualizer.graphic.addMeshFrom2DPolygons
 import org.locationtech.jts.geom.GeometryFactory
 import org.locationtech.jts.simplify.DouglasPeuckerSimplifier
 import org.openstreetmap.osmosis.areafilter.v0_6.BoundingBoxFilter
@@ -100,7 +100,7 @@ class BackgroundReader {
             val colors = mutableListOf<Color>()
             val polygons = mutableListOf<Polygon>()
             for (mapObject in processor.mapObjects) {
-                var geometry = transformer.toModelCRS(mapObject.geometry)
+                var geometry = transformer.tomosimelCRS(mapObject.geometry)
 
                 // Check if street is meant to be an area
                 if (

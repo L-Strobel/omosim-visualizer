@@ -1,9 +1,9 @@
-package de.uniwuerzburg.omodvisualizer
+package de.uniwuerzburg.omosimvisualizer
 
-import de.uniwuerzburg.omod.core.models.ActivityType
-import de.uniwuerzburg.omodvisualizer.Controls.disabled
-import de.uniwuerzburg.omodvisualizer.graphic.*
-import de.uniwuerzburg.omodvisualizer.theme.ThemeColors
+import de.uniwuerzburg.omosim.core.models.ActivityType
+import de.uniwuerzburg.omosimvisualizer.Controls.disabled
+import de.uniwuerzburg.omosimvisualizer.graphic.*
+import de.uniwuerzburg.omosimvisualizer.theme.ThemeColors
 import org.joml.Matrix4f
 import java.awt.Color
 
@@ -58,7 +58,7 @@ class UI(
 
         // Self attribution
         val watermark = TextElement(
-            "OMOD Visualizer",
+            "OMOSIM Visualizer",
             fontAttribution,
             -0.98f, -0.97f,
             window,
@@ -88,7 +88,7 @@ class UI(
                 borderRenderer
             )
             val txt = TextElement(
-                activity?.toString()?.lowercase() ?: "Moving",
+                activity?.toString()?.lowercase() ?: "moving",
                 font,
                 1f-widthSettings/3.7f,
                 topSettings-0.1f-offset,

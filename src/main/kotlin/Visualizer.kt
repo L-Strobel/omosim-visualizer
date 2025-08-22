@@ -1,12 +1,12 @@
-package de.uniwuerzburg.omodvisualizer
+package de.uniwuerzburg.omosimvisualizer
 
-import de.uniwuerzburg.omod.core.models.ActivityType
-import de.uniwuerzburg.omodvisualizer.graphic.Renderer
-import de.uniwuerzburg.omodvisualizer.graphic.addCircleMesh
-import de.uniwuerzburg.omodvisualizer.input.BackgroundReader
-import de.uniwuerzburg.omodvisualizer.input.CoordTransformer
-import de.uniwuerzburg.omodvisualizer.input.VisualAgent
-import de.uniwuerzburg.omodvisualizer.theme.ThemeColors
+import de.uniwuerzburg.omosim.core.models.ActivityType
+import de.uniwuerzburg.omosimvisualizer.graphic.Renderer
+import de.uniwuerzburg.omosimvisualizer.graphic.addCircleMesh
+import de.uniwuerzburg.omosimvisualizer.input.BackgroundReader
+import de.uniwuerzburg.omosimvisualizer.input.CoordTransformer
+import de.uniwuerzburg.omosimvisualizer.input.VisualAgent
+import de.uniwuerzburg.omosimvisualizer.theme.ThemeColors
 import org.joml.Matrix4f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
@@ -16,7 +16,7 @@ import kotlin.time.TimeSource
 
 
 class Visualizer(
-    val omodFile: File,
+    val omosimFile: File,
     val osmFile: File
 ) {
     private lateinit var window: Window
@@ -45,7 +45,7 @@ class Visualizer(
         window = Window("")
         aspect = window.getAspect()
 
-        val (agents, t, b) = VisualAgent.fromFile(omodFile, 7000, aspect)
+        val (agents, t, b) = VisualAgent.fromFile(omosimFile, 7000, aspect)
         vAgents = agents
         transformer = t
         bBox = b

@@ -1,7 +1,7 @@
-package de.uniwuerzburg.omodvisualizer
+package de.uniwuerzburg.omosimvisualizer
 
-import de.uniwuerzburg.omodvisualizer.graphic.Font
-import de.uniwuerzburg.omodvisualizer.graphic.Renderer
+import de.uniwuerzburg.omosimvisualizer.graphic.Font
+import de.uniwuerzburg.omosimvisualizer.graphic.Renderer
 import org.joml.Matrix4f
 
 class TextElement(

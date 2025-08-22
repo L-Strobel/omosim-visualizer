@@ -5,7 +5,7 @@ plugins {
     application
 }
 
-group = "de.uniwuerzburg.omodvisualizer"
+group = "de.uniwuerzburg.omosimvisualizer"
 version = "1.0"
 
 val lwjglVersion = "3.3.4"
@@ -21,7 +21,7 @@ dependencies {
     implementation("org.openstreetmap.osmosis:osmosis-areafilter:0.48.+")
     implementation("org.locationtech.jts:jts-core:1.+")
 
-    implementation("com.github.L-Strobel:omod:v2.1.1")
+    implementation("com.github.L-Strobel:omosim:v2.2.1")
     implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
 
     implementation("org.lwjgl:lwjgl")
@@ -59,10 +59,10 @@ java {
 }
 
 tasks.shadowJar {
-    archiveBaseName.set("omod-visualizer-${lwjglNatives}")
+    archiveBaseName.set("omosim-visualizer-${lwjglNatives}")
     mergeServiceFiles()
 }
 
 application {
-    mainClass.set("de.uniwuerzburg.omodvisualizer.MainKt")
+    mainClass.set("de.uniwuerzburg.omosimvisualizer.MainKt")
 }

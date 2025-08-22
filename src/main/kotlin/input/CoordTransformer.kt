@@ -1,4 +1,4 @@
-package de.uniwuerzburg.omodvisualizer.input
+package de.uniwuerzburg.omosimvisualizer.input
 
 import org.geotools.geometry.jts.JTS
 import org.geotools.referencing.CRS
@@ -24,7 +24,7 @@ class CoordTransformer (
         System.setProperty("hsqldb.reconfig_logging", "false") // Silence hsqldb
         Logger.getLogger("hsqldb.db").level = Level.WARNING
         val centerPnt = geometryFactory.createPoint(centerLatLon)
-        center = toModelCRS(centerPnt) as Point
+        center = tomosimelCRS(centerPnt) as Point
     }
 
     fun transformFormModelCoord(coord: Coordinate) : Coordinate {
@@ -35,7 +35,7 @@ class CoordTransformer (
 
     fun transformFromLatLon(coord: Coordinate) : Coordinate {
         val point = geometryFactory.createPoint(coord)
-        val transformedPoint = toModelCRS(point) as Point
+        val transformedPoint = tomosimelCRS(point) as Point
         val y = (transformedPoint.y - center.y) / windowHeightMeters
         val x = (transformedPoint.x - center.x) / (windowHeightMeters / aspect)
         return Coordinate(x, y)
@@ -46,7 +46,7 @@ class CoordTransformer (
      *
      * @param geometry Geometry to convert
      */
-    fun toModelCRS(geometry: Geometry) : Geometry {
+    fun tomosimelCRS(geometry: Geometry) : Geometry {
         return JTS.transform(geometry, transformerToUTM)
     }
 }

@@ -1,4 +1,4 @@
-package de.uniwuerzburg.omodvisualizer.graphic
+package de.uniwuerzburg.omosimvisualizer.graphic
 
 import org.poly2tri.Poly2Tri
 import org.poly2tri.geometry.polygon.Polygon

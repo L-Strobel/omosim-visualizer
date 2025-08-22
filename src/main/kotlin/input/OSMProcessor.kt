@@ -1,4 +1,4 @@
-package de.uniwuerzburg.omodvisualizer.input
+package de.uniwuerzburg.omosimvisualizer.input
 
 import org.locationtech.jts.geom.*
 import org.locationtech.jts.operation.linemerge.LineMerger
@@ -13,7 +13,7 @@ import org.openstreetmap.osmosis.core.store.SingleClassObjectSerializationFactor
 import org.openstreetmap.osmosis.core.task.v0_6.Sink
 
 /**
- * Enumeration of all OSM map objects used in OMOD
+ * Enumeration of all OSM map objects used in OMOSIM
  */
 enum class MapObjectType(val zorder: Int) {
     BUILDING(zorder=10), HWY_MOTORWAY(zorder=7), HWY_PRIMARY(zorder=6), HWY_TRUNK(zorder=6), HWY_SECONDARY(zorder=5),
@@ -297,7 +297,7 @@ class OSMProcessor(idTrackerType: IdTrackerType,
     }
 
     /**
-     * Determine if the OSM object is relevant for OMOD
+     * Determine if the OSM object is relevant for OMOSIM
      *
      * @param entity OSM object
      * @return true -> object is relevant

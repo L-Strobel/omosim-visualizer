@@ -1,6 +1,6 @@
-package de.uniwuerzburg.omodvisualizer.input
+package de.uniwuerzburg.omosimvisualizer.input
 
-import de.uniwuerzburg.omod.core.models.ActivityType
+import de.uniwuerzburg.omosim.core.models.ActivityType
 
 class TracePoint (
     val start: Double,

@@ -1,6 +1,6 @@
-package de.uniwuerzburg.omodvisualizer.theme
+package de.uniwuerzburg.omosimvisualizer.theme
 
-import de.uniwuerzburg.omod.core.models.ActivityType
+import de.uniwuerzburg.omosim.core.models.ActivityType
 import java.awt.Color
 
 object ThemeColors {

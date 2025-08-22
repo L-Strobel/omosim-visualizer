@@ -1,10 +1,10 @@
-package de.uniwuerzburg.omodvisualizer.input
+package de.uniwuerzburg.omosimvisualizer.input
 
-import de.uniwuerzburg.omod.core.models.Mode
-import de.uniwuerzburg.omod.io.json.OutputActivity
-import de.uniwuerzburg.omod.io.json.OutputEntry
-import de.uniwuerzburg.omod.io.json.OutputFormat
-import de.uniwuerzburg.omod.io.json.OutputTrip
+import de.uniwuerzburg.omosim.core.models.Mode
+import de.uniwuerzburg.omosim.io.json.OutputActivity
+import de.uniwuerzburg.omosim.io.json.OutputEntry
+import de.uniwuerzburg.omosim.io.json.OutputFormat
+import de.uniwuerzburg.omosim.io.json.OutputTrip
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -67,7 +67,7 @@ class VisualAgent (
         {
             println("Start reading agent data...")
             print("Read Json...\r")
-            val omodData = Json.decodeFromStream<OutputFormat>(file.inputStream())
+            val omosimData = Json.decodeFromStream<OutputFormat>(file.inputStream())
             println("Read Json... Done!")
 
             // Scale coordinates to display coordinates
@@ -75,7 +75,7 @@ class VisualAgent (
             var maxLat = -1 * Float.MAX_VALUE
             var minLon = Float.MAX_VALUE
             var maxLon = -1 * Float.MAX_VALUE
-            for (agent in omodData.agents) {
+            for (agent in omosimData.agents) {
                 val firstLeg = agent.mobilityDemand.first().plan.first() as OutputActivity
                 minLat = min(firstLeg.lat.toFloat(), minLat)
                 maxLat = max(firstLeg.lat.toFloat(), maxLat)
@@ -88,7 +88,7 @@ class VisualAgent (
             print("Interpolating trips...\r")
             val vAgents: List<VisualAgent>
             runBlocking(Dispatchers.Default) {
-               val vAgentsDef = omodData.agents.map{ async { getVAgent(it, transformer) } } // In parallel
+               val vAgentsDef = omosimData.agents.map{ async { getVAgent(it, transformer) } } // In parallel
                vAgents = vAgentsDef.awaitAll()
             }
             println("Interpolating trips... Done!")

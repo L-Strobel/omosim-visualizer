@@ -1,4 +1,4 @@
-package de.uniwuerzburg.omodvisualizer.graphic
+package de.uniwuerzburg.omosimvisualizer.graphic
 
 class Glyph(
     val width: Int,

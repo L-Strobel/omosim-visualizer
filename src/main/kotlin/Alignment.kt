@@ -1,4 +1,4 @@
-package de.uniwuerzburg.omodvisualizer
+package de.uniwuerzburg.omosimvisualizer
 
 enum class Alignment {
     CENTER, RIGHT, LEFT

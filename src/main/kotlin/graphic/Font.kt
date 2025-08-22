@@ -1,6 +1,6 @@
-package de.uniwuerzburg.omodvisualizer.graphic
+package de.uniwuerzburg.omosimvisualizer.graphic
 
-import de.uniwuerzburg.omodvisualizer.Window
+import de.uniwuerzburg.omosimvisualizer.Window
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.system.MemoryStack.stackPush

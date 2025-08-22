@@ -1,7 +1,7 @@
-package de.uniwuerzburg.omodvisualizer
+package de.uniwuerzburg.omosimvisualizer
 
-import de.uniwuerzburg.omodvisualizer.graphic.DynTextRenderer
-import de.uniwuerzburg.omodvisualizer.graphic.Font
+import de.uniwuerzburg.omosimvisualizer.graphic.DynTextRenderer
+import de.uniwuerzburg.omosimvisualizer.graphic.Font
 import org.joml.Matrix4f
 
 class DynTextElement (

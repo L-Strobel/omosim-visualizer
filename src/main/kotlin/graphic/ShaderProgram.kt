@@ -1,4 +1,4 @@
-package de.uniwuerzburg.omodvisualizer.graphic
+package de.uniwuerzburg.omosimvisualizer.graphic
 
 import org.joml.Matrix3x2f
 import org.joml.Matrix4f

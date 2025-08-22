@@ -1,6 +1,6 @@
-package de.uniwuerzburg.omodvisualizer.graphic
+package de.uniwuerzburg.omosimvisualizer.graphic
 
-import de.uniwuerzburg.omodvisualizer.Window
+import de.uniwuerzburg.omosimvisualizer.Window
 import org.joml.Matrix4f
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL30.*

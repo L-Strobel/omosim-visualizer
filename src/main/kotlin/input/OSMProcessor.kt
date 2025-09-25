@@ -196,10 +196,20 @@ class OSMProcessor(idTrackerType: IdTrackerType,
             }
             mutInnerRings.removeAll(holes)
 
+            // Stamp holes into polygon
             val holesAsPolygon = holes.map { geometryFactory.createPolygon(it) }.toTypedArray()
             val hole = geometryFactory.createMultiPolygon(holesAsPolygon).union()
+            val punchedGeom = polygon.difference(hole)
 
-            polygons.add ( polygon.difference(hole) as Polygon )
+            when (punchedGeom) {
+                is Polygon -> polygons.add ( punchedGeom )
+                is MultiPolygon -> {
+                    for (i in 0 until punchedGeom.numGeometries){
+                        polygons.add( punchedGeom.getGeometryN(i) as Polygon )
+                    }
+                }
+                else -> continue // Creating lines or points should be impossible
+            }
         }
         val geometry = geometryFactory.createMultiPolygon(polygons.toTypedArray()).union()
 

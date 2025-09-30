@@ -4,6 +4,8 @@ import crosby.binary.osmosis.OsmosisReader
 import de.uniwuerzburg.omosimvisualizer.graphic.Mesh
 import de.uniwuerzburg.omosimvisualizer.graphic.Renderer
 import de.uniwuerzburg.omosimvisualizer.graphic.addMeshFrom2DPolygons
+import de.uniwuerzburg.omosimvisualizer.theme.ThemeColors
+import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.GeometryFactory
 import org.locationtech.jts.simplify.DouglasPeuckerSimplifier
 import org.openstreetmap.osmosis.areafilter.v0_6.BoundingBoxFilter
@@ -72,15 +74,16 @@ class BackgroundReader {
 
             fun colorMap(type: MapObjectType) : Color {
                 return when (type) {
-                    MapObjectType.BUILDING -> Color.BLACK
-                    MapObjectType.HWY_MOTORWAY -> Color(0.4f, 0.4f, 0.4f)
-                    MapObjectType.HWY_PRIMARY -> Color(0.4f, 0.4f, 0.4f)
-                    MapObjectType.HWY_TRUNK -> Color(0.4f, 0.4f, 0.4f)
-                    MapObjectType.HWY_SECONDARY -> Color(0.4f, 0.4f, 0.4f)
-                    MapObjectType.HWY_TERTIARY -> Color(0.4f, 0.4f, 0.4f)
-                    MapObjectType.HWY_GENERAL -> Color(0.4f, 0.4f, 0.4f)
-                    MapObjectType.FOREST -> Color(0.13f, 0.13f, 0.13f)
-                    MapObjectType.WATER -> Color(0.1f, 0.1f, 0.15f)
+                    MapObjectType.BUILDING -> ThemeColors.bgBuildings
+                    MapObjectType.HWY_MOTORWAY -> ThemeColors.bgStreets
+                    MapObjectType.HWY_PRIMARY -> ThemeColors.bgStreets
+                    MapObjectType.HWY_TRUNK -> ThemeColors.bgStreets
+                    MapObjectType.HWY_SECONDARY -> ThemeColors.bgStreets
+                    MapObjectType.HWY_TERTIARY -> ThemeColors.bgStreets
+                    MapObjectType.HWY_GENERAL -> ThemeColors.bgStreets
+                    MapObjectType.FOREST -> ThemeColors.bgForest
+                    MapObjectType.WATER -> ThemeColors.bgWater
+                    MapObjectType.LAND -> ThemeColors.bgLand
                     else -> Color.RED // Debug
                 }
             }

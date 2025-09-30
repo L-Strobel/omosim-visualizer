@@ -66,9 +66,9 @@ class VisualAgent (
                 Triple<List<VisualAgent>, CoordTransformer, Array<Float>>
         {
             println("Start reading agent data...")
-            print("Read Json...\r")
+            print("\tRead Json...\r")
             val omosimData = Json.decodeFromStream<OutputFormat>(file.inputStream())
-            println("Read Json... Done!")
+            println("\tRead Json... Done!")
 
             // Scale coordinates to display coordinates
             var minLat = Float.MAX_VALUE
@@ -85,13 +85,13 @@ class VisualAgent (
             val centerLatLon = Coordinate(minLat + (maxLat - minLat) / 2.0, minLon + (maxLon - minLon) / 2.0)
             val transformer = CoordTransformer(windowHeightMeters, aspect, centerLatLon)
 
-            print("Interpolating trips...\r")
+            print("\tInterpolating trips...\r")
             val vAgents: List<VisualAgent>
             runBlocking(Dispatchers.Default) {
                val vAgentsDef = omosimData.agents.map{ async { getVAgent(it, transformer) } } // In parallel
                vAgents = vAgentsDef.awaitAll()
             }
-            println("Interpolating trips... Done!")
+            println("\tInterpolating trips... Done!")
 
             println("Agent data read!")
             return Triple(vAgents, transformer, arrayOf(minLat, maxLat, minLon, maxLon))

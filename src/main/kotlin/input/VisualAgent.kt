@@ -92,8 +92,6 @@ class VisualAgent (
                vAgents = vAgentsDef.awaitAll()
             }
             println("\tInterpolating trips... Done!")
-
-            println("Agent data read!")
             return Triple(vAgents, transformer, arrayOf(minLat, maxLat, minLon, maxLon))
         }
 

@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "de.uniwuerzburg.omosimvisualizer"
-version = "1.0.1"
+version = "1.0.2"
 
 val lwjglVersion = "3.3.4"
 val jomlVersion = "1.10.7"

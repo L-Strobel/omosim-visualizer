@@ -156,7 +156,7 @@ class BackgroundReader {
 
         private fun makeMapPolygon(polygon: org.locationtech.jts.geom.Polygon, transformer: CoordTransformer) : Polygon? {
             val extPoints = polygon.exteriorRing.coordinates.dropLast(1).map { coord ->
-                val coordMeter = transformer.transformFormModelCoord(coord)
+                val coordMeter = transformer.transformFromModelCoord(coord)
                 val x = coordMeter.x
                 val y = coordMeter.y
                 PolygonPoint(x, y)
@@ -166,7 +166,7 @@ class BackgroundReader {
 
             for (i in 0 until polygon.numInteriorRing) {
                 val innerPoints = polygon.getInteriorRingN(i).coordinates.dropLast(1).map { coord ->
-                    val coordMeter = transformer.transformFormModelCoord(coord)
+                    val coordMeter = transformer.transformFromModelCoord(coord)
                     val x = coordMeter.x
                     val y = coordMeter.y
                     PolygonPoint(x, y)

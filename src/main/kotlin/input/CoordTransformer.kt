@@ -27,7 +27,7 @@ class CoordTransformer (
         center = tomosimelCRS(centerPnt) as Point
     }
 
-    fun transformFormModelCoord(coord: Coordinate) : Coordinate {
+    fun transformFromModelCoord(coord: Coordinate) : Coordinate {
         val y = (coord.y - center.y) / windowHeightMeters
         val x = (coord.x - center.x) / (windowHeightMeters / aspect)
         return Coordinate(x, y)

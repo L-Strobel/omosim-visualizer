@@ -58,7 +58,13 @@ class Visualizer(
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-        glClearColor(0.15f , 0.15f, 0.15f, 1.0f)
+        // Background color
+        glClearColor(
+            ThemeColors.bgWater.red.toFloat() / 255,
+            ThemeColors.bgWater.green.toFloat() / 255,
+            ThemeColors.bgWater.blue.toFloat() / 255,
+            1.0f
+        )
 
         Controls.registerControls(window)
 

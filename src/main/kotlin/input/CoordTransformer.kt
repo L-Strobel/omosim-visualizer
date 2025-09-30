@@ -24,7 +24,7 @@ class CoordTransformer (
         System.setProperty("hsqldb.reconfig_logging", "false") // Silence hsqldb
         Logger.getLogger("hsqldb.db").level = Level.WARNING
         val centerPnt = geometryFactory.createPoint(centerLatLon)
-        center = tomosimelCRS(centerPnt) as Point
+        center = toModelCRS(centerPnt) as Point
     }
 
     fun transformFromModelCoord(coord: Coordinate) : Coordinate {
@@ -35,7 +35,7 @@ class CoordTransformer (
 
     fun transformFromLatLon(coord: Coordinate) : Coordinate {
         val point = geometryFactory.createPoint(coord)
-        val transformedPoint = tomosimelCRS(point) as Point
+        val transformedPoint = toModelCRS(point) as Point
         val y = (transformedPoint.y - center.y) / windowHeightMeters
         val x = (transformedPoint.x - center.x) / (windowHeightMeters / aspect)
         return Coordinate(x, y)
@@ -46,7 +46,7 @@ class CoordTransformer (
      *
      * @param geometry Geometry to convert
      */
-    fun tomosimelCRS(geometry: Geometry) : Geometry {
+    fun toModelCRS(geometry: Geometry) : Geometry {
         return JTS.transform(geometry, transformerToUTM)
     }
 }

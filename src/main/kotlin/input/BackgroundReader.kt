@@ -62,7 +62,7 @@ class BackgroundReader {
                 minLat,
                 true,
                 false,
-                false,
+                true,
                 false
             )
             geomFilter.setSink(processor)
@@ -100,10 +100,20 @@ class BackgroundReader {
             }
 
             // Triangulate OSM data
+            val bb = geometryFactory.createPolygon(
+                arrayOf(
+                    Coordinate(minLat, minLon),
+                    Coordinate(minLat, maxLon),
+                    Coordinate(maxLat, maxLon),
+                    Coordinate(maxLat, minLon),
+                    Coordinate(minLat, minLon),
+                )
+            )
             val colors = mutableListOf<Color>()
             val polygons = mutableListOf<Polygon>()
             for (mapObject in processor.mapObjects) {
-                var geometry = transformer.tomosimelCRS(mapObject.geometry)
+                var geometry = bb.intersection(mapObject.geometry) // Clip at bb.
+                geometry = transformer.toModelCRS(geometry)
 
                 // Check if street is meant to be an area
                 if (

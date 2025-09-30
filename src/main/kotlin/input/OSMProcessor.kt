@@ -9,6 +9,7 @@ import org.openstreetmap.osmosis.core.filter.common.IdTrackerFactory
 import org.openstreetmap.osmosis.core.filter.common.IdTrackerType
 import org.openstreetmap.osmosis.core.store.IndexedObjectStore
 import org.openstreetmap.osmosis.core.store.IndexedObjectStoreReader
+import org.openstreetmap.osmosis.core.store.NoSuchIndexElementException
 import org.openstreetmap.osmosis.core.store.SingleClassObjectSerializationFactory
 import org.openstreetmap.osmosis.core.task.v0_6.Sink
 
@@ -17,7 +18,7 @@ import org.openstreetmap.osmosis.core.task.v0_6.Sink
  */
 enum class MapObjectType(val zorder: Int) {
     BUILDING(zorder=10), HWY_MOTORWAY(zorder=7), HWY_PRIMARY(zorder=6), HWY_TRUNK(zorder=6), HWY_SECONDARY(zorder=5),
-    HWY_TERTIARY(zorder=4), HWY_GENERAL(zorder=3), FOREST(zorder=2), WATER(zorder=0), AREA(zorder=0)
+    HWY_TERTIARY(zorder=4), HWY_GENERAL(zorder=3), FOREST(zorder=2), WATER(zorder=1), AREA(zorder=1), LAND(zorder=0);
 }
 
 /**
@@ -239,12 +240,16 @@ class OSMProcessor(idTrackerType: IdTrackerType,
 
         for (member in relation.members) {
             if ((member.memberType == EntityType.Way) && (member.memberRole == role)) {
-                val way = wayReader.get(member.memberId).entity
-                val geom = getGeom(way, nodeReader)
-                if (geom is Polygon) {
-                    rings.add(geom.exteriorRing)
-                } else if (geom is LineString) {
-                    lines.add(geom)
+                try {
+                    val way = wayReader.get(member.memberId).entity
+                    val geom = getGeom(way, nodeReader)
+                    if (geom is Polygon) {
+                        rings.add(geom.exteriorRing)
+                    } else if (geom is LineString) {
+                        lines.add(geom)
+                    }
+                } catch (e: NoSuchIndexElementException) {
+                    // Ignore. Way most likely got removed by BB-Filer.
                 }
             }
         }
@@ -297,6 +302,15 @@ class OSMProcessor(idTrackerType: IdTrackerType,
                     when(tag.value) {
                         "yes" -> MapObjectType.AREA
                         else -> continue
+                    }
+                }
+                "admin_level" -> {
+                    val adminLvl = tag.value.toIntOrNull()
+                    if ((adminLvl != null) && (adminLvl == 4)) {
+                        rslt.add(MapObjectType.AREA)
+                        MapObjectType.LAND
+                    } else {
+                        continue
                     }
                 }
                 else -> continue
